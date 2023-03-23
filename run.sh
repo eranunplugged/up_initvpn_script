@@ -299,7 +299,7 @@ done
 
 cp -f ./wg0.conf.def ./wg0.conf
 
-systemctl enable wg-quick@wg0
+systemctl enable --now wg-quick@wg0
 
 echo "10.0.1.1" > /etc/wireguard/last_ip.var
 mkdir /etc/wireguard/clients
