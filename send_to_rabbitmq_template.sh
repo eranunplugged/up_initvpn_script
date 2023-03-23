@@ -60,7 +60,7 @@ payload=$(jq -n --arg time "$time" \
                --arg ip "$public_ip" \
                --arg cpu "$cpu" \
                --arg serverStatusUP "$serverStatusUP" \
-               --arg region "%%IINSTANCE_REGION%%" \
+               --arg region "%%INSTANCE_REGION%%" \
                --argjson point "$point" \
                '{time: $time, ami: $ami, ip: $ip, cpu: $cpu, serverStatusUP: $serverStatusUP, region: $region, point: $point}')
 
