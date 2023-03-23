@@ -10,7 +10,7 @@ rabbitmq_routing_key="routingKeyPing"
 ami="%%INSTANCE_ID%%"
 
 # Time
-time=$(date +"%Y-%m-%d %H:%M:%S")
+time=$(date +"%s")
 
 # IP (retrieve the primary public IP of the instance)
 public_ip="%%PUBLIC_IP%%"
