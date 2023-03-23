@@ -5,8 +5,8 @@ rabbitmq_host="%%RABBIT_HOST%%"
 rabbitmq_port="%%RABBIT_PORT%%"
 rabbitmq_user="%%RABBIT_DATABASE_USERNAME%%"
 rabbitmq_password="%%RABBIT_DATABASE_PASSWORD%%"
-rabbitmq_exchange="exchange_vpn"
-rabbitmq_routing_key="routingkey"
+rabbitmq_exchange="exchange_ping"
+rabbitmq_routing_key="routingKeyPing"
 ami="%%INSTANCE_ID%%"
 
 # Time
@@ -48,21 +48,20 @@ serverStatusUP=true
 location_data=$(curl -s "http://ip-api.com/json/$public_ip")
 latitude=$(echo "$location_data" | jq -r '.lat')
 longitude=$(echo "$location_data" | jq -r '.lon')
-point=$( jq -n --arg  lat "$latitude" \
-               --arg  lon "$longitude" \
-               '{lat: $lat, lon: $lon}')
+city=$(echo "$location_data" | jq -r '.city')
+point=$(jq -n -c -r  --arg lat "$latitude" --arg  lon "$longitude" --arg city "$city" '{lat: $lat, lon: $lon, city: $city}')
 
 
 
 
 # Create JSON payload
-payload=$(jq -n --arg time "$time" \
+payload=$(jq -c -n -r --arg time "$time" \
                --arg ami "$ami" \
                --arg ip "$public_ip" \
                --arg cpu "$cpu" \
                --arg serverStatusUP "$serverStatusUP" \
-               --arg region "%%INSTANCE_REGION%%" \
-               --arg point "$point" \
+               --arg region "nyc3" \
+               --argjson point "$point" \
                '{time: $time, ip: $ip, cpu: $cpu, serverStatusUP: $serverStatusUP, region: $region, point: $point}')
 
 # Send data to RabbitMQ
