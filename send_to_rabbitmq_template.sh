@@ -49,13 +49,13 @@ location_data=$(curl -s "http://ip-api.com/json/$public_ip")
 latitude=$(echo "$location_data" | jq -r '.lat')
 longitude=$(echo "$location_data" | jq -r '.lon')
 city=$(echo "$location_data" | jq -r '.city')
-point=$(jq -n -c -r  --arg lat "$latitude" --arg  lon "$longitude" --arg city "$city" '{lat: $lat, lon: $lon, city: $city}')
+point=$(jq -n --arg lat "$latitude" --arg  lon "$longitude" --arg city "$city" '{lat: $lat, lon: $lon, city: $city}')
 
 
 
 
 # Create JSON payload
-payload=$(jq -c -n -r --arg time "$time" \
+payload=$(jq -n --arg time "$time" \
                --arg ami "$ami" \
                --arg ip "$public_ip" \
                --arg cpu "$cpu" \
