@@ -60,9 +60,9 @@ payload=$(jq -c -n -r --arg time "$time" \
                --arg ip "$public_ip" \
                --arg cpu "$cpu" \
                --arg serverStatusUP "$serverStatusUP" \
-               --arg region "nyc3" \
+               --arg region "%%IINSTANCE_REGION%%" \
                --argjson point "$point" \
-               '{time: $time, ip: $ip, cpu: $cpu, serverStatusUP: $serverStatusUP, region: $region, point: $point}')
+               '{time: $time, ami: $ami, ip: $ip, cpu: $cpu, serverStatusUP: $serverStatusUP, region: $region, point: $point}')
 
 # Send data to RabbitMQ
 echo "Sending data to RabbitMQ: $payload"
