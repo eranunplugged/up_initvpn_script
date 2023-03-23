@@ -48,7 +48,12 @@ serverStatusUP=true
 location_data=$(curl -s "http://ip-api.com/json/$public_ip")
 latitude=$(echo "$location_data" | jq -r '.lat')
 longitude=$(echo "$location_data" | jq -r '.lon')
-point="$latitude,$longitude"
+point=$( jq -n --arg  lat "$latitude" \
+               --arg  lon "$longitude" \
+               '{lat: $lat, lon: $lon}')
+
+
+
 
 # Create JSON payload
 payload=$(jq -n --arg time "$time" \
