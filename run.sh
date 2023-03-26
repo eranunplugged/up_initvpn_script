@@ -64,64 +64,64 @@ source $OUTPUT_FILE
 #####################################
 #######INSTALL OPENVPN################
 
-sudo apt-get update
-sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common dnsutils
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
-sudo systemctl enable --now docker
-export OVPN_DATA="ovpn-data"
-export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
-sudo docker volume create --name $OVPN_DATA
-sudo docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm protectvpn/ovpn ovpn_genconfig -u tcp://${PUBLIC_IP}:443
-sudo sed -i 's/1194/443/i' /var/lib/docker/volumes/${OVPN_DATA}/_data/openvpn.conf
-sudo docker run -v $OVPN_DATA:/etc/openvpn -d -p 443:443/tcp --cap-add=NET_ADMIN --name ovpn protectvpn/ovpn
-ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
-sudo docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 protectvpn/ovpn ovpn_initpki nopass
-ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
-export NUM_USERS=${QUANTITY_GENERATED_VPNS:-10}
-sudo docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 protectvpn/ovpn ovpn_genclientcert "user" nopass $NUM_USERS
-for i in $(seq 1 $NUM_USERS); do
-  sudo docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -e DEBUG=1 protectvpn/ovpn ovpn_getclient "user$i" > "user$i.ovpn"
-done
-sudo docker stop ovpn
-cat << EOF | sudo tee /etc/systemd/system/docker-openvpn@.service
-#
-[Unit]
-Description=OpenVPN Docker Container
-Documentation=https://github.com/kylemanna/docker-openvpn
-After=network.target docker.service
-Requires=docker.service
-[Service]
-RestartSec=10
-Restart=always
-# Modify IP6_PREFIX to match network config
-#Environment="IP6_PREFIX=2001:db8::/64"
-#Environment="ARGS=--config openvpn.conf --server-ipv6 2001:db8::/64"
-Environment="NAME=ovpn"
-Environment="DATA_VOL=ovpn-data"
-Environment="IMG=ovpn:latest"
-Environment="PORT=443:443/tcp"
-# To override environment variables, use local configuration directory:
-# /etc/systemd/system/docker-openvpn@foo.d/local.conf
-# http://www.freedesktop.org/software/systemd/man/systemd.unit.html
-# IPv6: Ensure forwarding is enabled on host's networking stack (hacky)
-# Would be nice to use systemd-network on the host, but this doesn't work
-# http://lists.freedesktop.org/archives/systemd-devel/2015-June/032762.html
-ExecStartPre=/bin/sh -c 'test -z "\$IP6_PREFIX" && exit 0; sysctl net.ipv6.conf.all.forwarding=1'
-# Main process
-# ExecStart=/usr/bin/docker run --rm --cap-add=NET_ADMIN -v \${DATA_VOL}:/etc/openvpn --name \${NAME} -p \${PORT} \${IMG} ovpn_run \$ARGS
-ExecStart=/usr/bin/docker start -a \$NAME
-# IPv6: Add static route for IPv6 after it starts up
-ExecStartPost=/bin/sh -c 'test -z "\${IP6_PREFIX}" && exit 0; sleep 1; ip route replace \${IP6_PREFIX} via \$(docker inspect -f "{{ .NetworkSettings.GlobalIPv6Address }}" \$NAME ) dev docker0'
-ExecStop=/usr/bin/docker stop -f \$NAME
-# IPv6: Clean-up
-ExecStopPost=/bin/sh -c 'test -z "\$IP6_PREFIX" && exit 0; ip route del \$IP6_PREFIX dev docker0'
-[Install]
-WantedBy=multi-user.target
-EOF
-systemctl enable --now docker-openvpn@ovpn.service
+# sudo apt-get update
+# sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common dnsutils
+# sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+# sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+# sudo apt-get update
+# sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
+# sudo systemctl enable --now docker
+# export OVPN_DATA="ovpn-data"
+# export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
+# sudo docker volume create --name $OVPN_DATA
+# sudo docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm protectvpn/ovpn ovpn_genconfig -u tcp://${PUBLIC_IP}:443
+# sudo sed -i 's/1194/443/i' /var/lib/docker/volumes/${OVPN_DATA}/_data/openvpn.conf
+# sudo docker run -v $OVPN_DATA:/etc/openvpn -d -p 443:443/tcp --cap-add=NET_ADMIN --name ovpn protectvpn/ovpn
+# ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
+# sudo docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 protectvpn/ovpn ovpn_initpki nopass
+# ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
+# export NUM_USERS=${QUANTITY_GENERATED_VPNS:-10}
+# sudo docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 protectvpn/ovpn ovpn_genclientcert "user" nopass $NUM_USERS
+# for i in $(seq 1 $NUM_USERS); do
+#   sudo docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -e DEBUG=1 protectvpn/ovpn ovpn_getclient "user$i" > "user$i.ovpn"
+# done
+# sudo docker stop ovpn
+# cat << EOF | sudo tee /etc/systemd/system/docker-openvpn@.service
+# #
+# [Unit]
+# Description=OpenVPN Docker Container
+# Documentation=https://github.com/kylemanna/docker-openvpn
+# After=network.target docker.service
+# Requires=docker.service
+# [Service]
+# RestartSec=10
+# Restart=always
+# # Modify IP6_PREFIX to match network config
+# #Environment="IP6_PREFIX=2001:db8::/64"
+# #Environment="ARGS=--config openvpn.conf --server-ipv6 2001:db8::/64"
+# Environment="NAME=ovpn"
+# Environment="DATA_VOL=ovpn-data"
+# Environment="IMG=ovpn:latest"
+# Environment="PORT=443:443/tcp"
+# # To override environment variables, use local configuration directory:
+# # /etc/systemd/system/docker-openvpn@foo.d/local.conf
+# # http://www.freedesktop.org/software/systemd/man/systemd.unit.html
+# # IPv6: Ensure forwarding is enabled on host's networking stack (hacky)
+# # Would be nice to use systemd-network on the host, but this doesn't work
+# # http://lists.freedesktop.org/archives/systemd-devel/2015-June/032762.html
+# ExecStartPre=/bin/sh -c 'test -z "\$IP6_PREFIX" && exit 0; sysctl net.ipv6.conf.all.forwarding=1'
+# # Main process
+# # ExecStart=/usr/bin/docker run --rm --cap-add=NET_ADMIN -v \${DATA_VOL}:/etc/openvpn --name \${NAME} -p \${PORT} \${IMG} ovpn_run \$ARGS
+# ExecStart=/usr/bin/docker start -a \$NAME
+# # IPv6: Add static route for IPv6 after it starts up
+# ExecStartPost=/bin/sh -c 'test -z "\${IP6_PREFIX}" && exit 0; sleep 1; ip route replace \${IP6_PREFIX} via \$(docker inspect -f "{{ .NetworkSettings.GlobalIPv6Address }}" \$NAME ) dev docker0'
+# ExecStop=/usr/bin/docker stop -f \$NAME
+# # IPv6: Clean-up
+# ExecStopPost=/bin/sh -c 'test -z "\$IP6_PREFIX" && exit 0; ip route del \$IP6_PREFIX dev docker0'
+# [Install]
+# WantedBy=multi-user.target
+# EOF
+# systemctl enable --now docker-openvpn@ovpn.service
 
 ########Create rabbitmq stats sender########
 
@@ -217,31 +217,31 @@ rabbitmq_password=$RABBIT_DATABASE_PASSWORD
 rabbitmq_exchange="exchange_vpn"
 rabbitmq_routing_key="routingkey"
 
-json_payload='{"typeVpn": "ov"}'
+# json_payload='{"typeVpn": "ov"}'
 
-# Iterate through all .ovpn files in the current directory
-rabbit_data=""
-for file in *.ovpn; do
-    if [[ -f $file ]]; then
-        value=$(base64 -w 0 "$file")
-        json_payload="{\"typeVpn\":\"ov\",\"ip\":\"${PUBLIC_IP}\",\"vpnConfiguration\":\"${value}\",\"available\":\"true\",\"ami\":\"${INSTANCE_ID}\",\"region\":\"${INSTANCE_REGION}\"}"
-        if [ "${rabbit_data}" == "" ]; then
-          rabbit_data=${json_payload}
-        else
-          rabbit_data="${rabbit_data},${json_payload}"
-        fi
-    fi
+# # Iterate through all .ovpn files in the current directory
+# rabbit_data=""
+# for file in *.ovpn; do
+#     if [[ -f $file ]]; then
+#         value=$(base64 -w 0 "$file")
+#         json_payload="{\"typeVpn\":\"ov\",\"ip\":\"${PUBLIC_IP}\",\"vpnConfiguration\":\"${value}\",\"available\":\"true\",\"ami\":\"${INSTANCE_ID}\",\"region\":\"${INSTANCE_REGION}\"}"
+#         if [ "${rabbit_data}" == "" ]; then
+#           rabbit_data=${json_payload}
+#         else
+#           rabbit_data="${rabbit_data},${json_payload}"
+#         fi
+#     fi
 
-done
-amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "[$rabbit_data]"
+# done
+# amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "[$rabbit_data]"
 
-# Check if the command was successful
-if [ $? -eq 0 ]; then
-    echo "Data successfully sent to RabbitMQ"
-else
-    echo "Failed to send data to RabbitMQ"
-    exit 1
-fi
+# # Check if the command was successful
+# if [ $? -eq 0 ]; then
+#     echo "Data successfully sent to RabbitMQ"
+# else
+#     echo "Failed to send data to RabbitMQ"
+#     exit 1
+# fi
 ##########WIREGUARD INSTALLATION#################################
 
 aws configure set aws_access_key_id "$access_key" && aws configure set aws_secret_access_key "$secret_key" && aws configure set region "eu-west-2" && aws configure set output "json"
