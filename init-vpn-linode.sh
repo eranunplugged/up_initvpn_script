@@ -193,14 +193,14 @@ rabbitmq_routing_key="routingkey"
 
 
 ## Wait for all the files to be generated
-files_generated=0
-for i in $(seq 1 $NUM_USERS); do
-    client_conf="/etc/wireguard/config/peer${i}/peer${i}.conf"
-    if [[ -e "$client_conf" ]]; then
-        files_generated=$((files_generated + 1))
-    else
-        sleep 1
-    fi
+files_generated=1
+while [ $files_generated -lt $NUM_USERS ]; do
+      client_conf="/etc/wireguard/config/peer${files_generated}/peer${files_generated}.conf"
+      if [[ -e "$client_conf" ]]; then
+          files_generated=$((files_generated + 1))
+      else
+          sleep 1
+      fi
 done
 
 # Initialize an empty array for storing JSON objects
