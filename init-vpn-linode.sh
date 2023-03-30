@@ -12,7 +12,7 @@ export OVPN_IMAGE_VERSION=latest
 export INSTANCE_CLOUD="LINODE"
 
 curl -o functions.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/main/functions.sh
-curl -o ovpn-gen-peers.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/main/ovpn-gen-peers.sh.sh
+curl -o ovpn-gen-peers.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/main/ovpn-gen-peers.sh
 chmod 777 ovpn-gen-peers.sh
 
 . ./functions.sh
