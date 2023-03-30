@@ -55,7 +55,8 @@ if [ ! -z $ES_ENABLED ]; then
   curl -L -O https://artifacts.elastic.co/downloads/beats/elastic-agent/$ES_PREFIX.tar.gz
   tar xzvf $ES_PREFIX.tar.gz
   cd "$ES_PREFIX" || exit
-  ./elastic-agent install --url=$ES_CLOUD_URL --enrollment-token=$ES_ENROLLMENT_TOKEN
+  ./elastic-agent install -f -n --url=$ES_CLOUD_URL --enrollment-token=$ES_ENROLLMENT_TOKEN
+  cd $OLDPWD
 fi
 
 
