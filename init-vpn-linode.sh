@@ -24,10 +24,10 @@ apt install -y software-properties-common unzip jq amqp-tools default-jre syssta
 
 
 if [ "$INSTANCE_CLOUD" == "AWS" ]; then
-  INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+  export INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 fi
 if [ "$INSTANCE_CLOUD" == "DIGITAL_OCEAN" ]; then
-  INSTANCE_ID=$(curl http://169.254.169.254/metadata/v1/id)
+  export INSTANCE_ID=$(curl http://169.254.169.254/metadata/v1/id)
 fi
 if [ ! -z $LINODE_ID ]; then
   export INSTANCE_ID=$LINODE_ID
@@ -49,6 +49,7 @@ echo "$VPN_SERVER_CONFIG" >> $OUTPUT_FILE
 set -a
 . $OUTPUT_FILE
 set +a
+export NUM_USERS=${QUANTITY_GENERATED_VPNS:-10}
 #####################################
 if [ ! -z $ES_ENABLED ]; then
   curl -L -O https://artifacts.elastic.co/downloads/beats/elastic-agent/$ES_PREFIX.tar.gz

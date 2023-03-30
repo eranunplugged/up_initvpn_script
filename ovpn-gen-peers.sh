@@ -24,7 +24,6 @@ ExecStopPost=/bin/sh -c 'test -z "\$IP6_PREFIX" && exit 0; ip route del \$IP6_PR
 WantedBy=multi-user.target
 EOF
 
-export NUM_USERS=${QUANTITY_GENERATED_VPNS:-10}
 docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_genclientcert "user" nopass $NUM_USERS
 docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -e DEBUG=1 protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_genclients "user" "$NUM_USERS"
 docker stop ovpn
