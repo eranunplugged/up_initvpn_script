@@ -17,15 +17,11 @@ chmod 777 ovpn-gen-peers.sh
 
 . ./functions.sh
 
-echo "# Installing ssh certificate"
-curl -s -o /etc/ssh/trusted-user-ca-keys.pem ${UP_VAULT_ADDR}/v1/ssh-client-signer2/public_key
-echo "TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem" >> /etc/ssh/sshd_config
-systemctl restart sshd
-
-apt update -y
-apt install -y software-properties-common unzip jq amqp-tools default-jre sysstat awscli gpg wireguard-dkms wireguard-tools qrencode apt-transport-https ca-certificates curl software-properties-common dnsutils
-# shellcheck disable=SC1073
+install_up_ssh_certificate
+install_docker
 install_vault
+apt install -y software-properties-common unzip jq amqp-tools default-jre sysstat awscli gpg wireguard-dkms wireguard-tools qrencode apt-transport-https ca-certificates curl software-properties-common dnsutils
+
 
 if [ "$INSTANCE_CLOUD" == "AWS" ]; then
   INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
@@ -37,19 +33,17 @@ if [ ! -z $LINODE_ID ]; then
   INSTANCE_ID=$LINODE_ID
 fi
 
-
-########For rabbitmq###########
 # Set output file
 OUTPUT_FILE="output.txt"
 
 # Read AWS credentials from Vault and store them as environment variables
 AWS_CREDS=$(vault read -format=json aws/creds/vpn_server | jq -r '.data | to_entries | map("\(.key)=\(.value)") | join(" ")')
-echo "export $AWS_CREDS" > $OUTPUT_FILE
+echo "$AWS_CREDS" > $OUTPUT_FILE
 
 # Read VPN server configuration data from Vault and store them as environment variables
 # shellcheck disable=SC2086
 VPN_SERVER_CONFIG=$(vault read -format=json /kv/data/vpn-server/${ENVIRONMENT} | jq -r '.data.data | to_entries | map("\(.key)=\(.value)") | join(" ")')
-echo "export $VPN_SERVER_CONFIG" >> $OUTPUT_FILE
+echo "$VPN_SERVER_CONFIG" >> $OUTPUT_FILE
 
 # Source the output file to set environment variables
 source $OUTPUT_FILE
@@ -58,10 +52,10 @@ if [ ! -z $ES_ENABLED ]; then
   curl -L -O https://artifacts.elastic.co/downloads/beats/elastic-agent/$ES_PREFIX.tar.gz
   tar xzvf $ES_PREFIX.tar.gz
   cd "$ES_PREFIX" || exit
-  ./elastic-agent install --url=YYY --enrollment-token=$ES_ENROLLMENT_TOKEN
+  ./elastic-agent install --url=$ES_CLOUD_URL --enrollment-token=$ES_ENROLLMENT_TOKEN
 fi
 
-install_docker
+
 
 #######INSTALL OPENVPN################
 

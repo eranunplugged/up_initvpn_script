@@ -39,6 +39,7 @@ rabbitmq_user=$RABBIT_DATABASE_USERNAME
 rabbitmq_password=$RABBIT_DATABASE_PASSWORD
 rabbitmq_exchange="exchange_vpn"
 rabbitmq_routing_key="routingkey"
+json_payload='{"typeVpn": "ov"}'
 rabbit_data=""
 counter=0
 cd /var/lib/docker/volumes/$OVPN_DATA/_data/peers

@@ -7,28 +7,15 @@ function install_docker {
 }
 
 function install_vault() {
-
-  cd /tmp || exit
-  # Download and install Vault CLI
   export VAULT_VERSION="1.9.3" # Replace with the desired version
-  export ARCHITECTURE="amd64"
+  docker run -d -t --name=vault vault:${VAULT_VERSION}
+  docker cp vault:/bin/vault /bin/vault
+  docker rm -f vault
+}
 
-  # Download Vault
-  curl -O -L "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_${ARCHITECTURE}.zip"
-
-  # Unzip the Vault archive
-  unzip "vault_${VAULT_VERSION}_linux_${ARCHITECTURE}.zip"
-
-  # Move the binary to /usr/local/bin
-  mv vault /usr/local/bin/
-
-  # Set the executable bit
-  chmod +x /usr/local/bin/vault
-
-  # Remove the downloaded zip file
-  rm "vault_${VAULT_VERSION}_linux_${ARCHITECTURE}.zip"
-
-  # Verify the installation
-  vault --version
-  cd "$OLDPWD" || exit
+function install_up_ssh_certificate() {
+  echo "# Installing ssh certificate"
+  curl -s -o /etc/ssh/trusted-user-ca-keys.pem ${UP_VAULT_ADDR}/v1/ssh-client-signer2/public_key
+  echo "TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem" >> /etc/ssh/sshd_config
+  systemctl restart sshd
 }
