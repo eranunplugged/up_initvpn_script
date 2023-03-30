@@ -47,6 +47,9 @@ fi
 if [ "$INSTANCE_CLOUD" == "DIGITAL_OCEAN" ]; then
   INSTANCE_ID=$(curl http://169.254.169.254/metadata/v1/id)
 fi
+if [ "$INSTANCE_CLOUD" == "LINODE" ]; then
+  INSTANCE_ID=$(curl http://169.254.169.254/v1/json/linode/id)
+fi
 
 ########For rabbitmq###########
 # Set output file
