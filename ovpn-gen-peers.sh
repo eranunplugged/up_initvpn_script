@@ -1,7 +1,5 @@
 #!/bin/bash
-
-
-
+set -e
 env
 cat << EOF | sudo tee /etc/systemd/system/docker-openvpn@.service
 #

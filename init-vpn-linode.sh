@@ -68,7 +68,7 @@ docker run -v $OVPN_DATA:/etc/openvpn -d -p 443:443/tcp --cap-add=NET_ADMIN --na
 docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_initpki nopass
 ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
 
-./ovpn-gen-peers.sh 2>&1 &
+./ovpn-gen-peers.sh >/tmp/ovpn-gen.log 2>&1 &
 
 ########Create rabbitmq stats sender########
 
