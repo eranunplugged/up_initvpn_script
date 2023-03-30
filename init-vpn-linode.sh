@@ -65,7 +65,6 @@ docker volume create --name $OVPN_DATA
 docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_genconfig -u tcp://${PUBLIC_IP}:443
 sed -i 's/1194/443/i' /var/lib/docker/volumes/${OVPN_DATA}/_data/openvpn.conf
 docker run -v $OVPN_DATA:/etc/openvpn -d -p 443:443/tcp --cap-add=NET_ADMIN --name ovpn protectvpn/ovpn:${OVPN_IMAGE_VERSION}
-ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
 docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_initpki nopass
 ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
 
@@ -118,8 +117,7 @@ EOF"
 
 # Reload the systemd configuration, start the timer, and enable it to run at boot
 systemctl daemon-reload
-systemctl start send_to_rabbitmq.timer
-systemctl enable send_to_rabbitmq.timer
+systemctl enable --now send_to_rabbitmq.timer
 
 # Check the status of the timer
 systemctl status send_to_rabbitmq.timer
@@ -139,12 +137,6 @@ export WAN_INTERFACE_NAME=$(ip r | grep default | awk {'print $5'})
 # Update package list and install required dependencies
 apt-get update
 apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-
-# Add Docker repository and install Docker
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-apt-get update
-apt-get install -y docker-ce
 
 # Install Docker Compose
 curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -194,45 +186,6 @@ rabbitmq_user=$RABBIT_DATABASE_USERNAME
 rabbitmq_password=$RABBIT_DATABASE_PASSWORD
 rabbitmq_exchange="exchange_vpn"
 rabbitmq_routing_key="routingkey"
-
-# # Wait for all the files to be generated
-# files_generated=0
-# while [ $files_generated -lt $NUM_USERS ]; do
-#     files_generated=0
-#     for i in $(seq 1 $NUM_USERS); do
-#         client_conf="/etc/wireguard/config/peer${i}/peer${i}.conf"
-#         if [[ -e "$client_conf" ]]; then
-#             files_generated=$((files_generated + 1))
-#         fi
-#     done
-#     sleep 1
-# done
-
-# # Initialize an empty array for storing JSON objects
-# json_payload='{"typeVpn": "wg"}'
-
-# # Iterate through all configuration files
-# rabbit_data=""
-# for i in $(seq 1 $NUM_USERS); do
-#     client_conf="/etc/wireguard/config/peer${i}/peer${i}.conf"
-#     echo "Checking file: $client_conf" # Debug output
-#     if [[ -e "$client_conf" ]]; then
-#         echo "File exists: $client_conf" # Debug output
-#         # Read the contents of the client configuration file and encode it in Base64
-#         value=$(base64 -w 0 < "$client_conf")
-#         json_payload="{\"typeVpn\":\"wg\",\"ip\":\"${PUBLIC_IP}\",\"vpnConfiguration\":\"${value}\",\"available\":\"true\",\"ami\":\"${INSTANCE_ID}\",\"region\":\"${INSTANCE_REGION}\"}"
-#         if [ "${rabbit_data}" == "" ]; then
-#             rabbit_data=${json_payload}
-#         else
-#             rabbit_data="${rabbit_data},${json_payload}"
-#         fi
-#     else
-#         echo "File not found: $client_conf" # Debug output
-#     fi
-# done
-
-# # Send the JSON array to RabbitMQ
-# amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "[$(echo "$rabbit_data")]"
 
 
 # Wait for all the files to be generated
