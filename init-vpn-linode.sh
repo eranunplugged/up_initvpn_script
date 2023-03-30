@@ -30,7 +30,7 @@ if [ "$INSTANCE_CLOUD" == "DIGITAL_OCEAN" ]; then
   INSTANCE_ID=$(curl http://169.254.169.254/metadata/v1/id)
 fi
 if [ ! -z $LINODE_ID ]; then
-  INSTANCE_ID=$LINODE_ID
+  export INSTANCE_ID=$LINODE_ID
 fi
 
 # Set output file
