@@ -192,7 +192,7 @@ rabbitmq_exchange="exchange_vpn"
 rabbitmq_routing_key="routingkey"
 
 
-# Wait for all the files to be generated
+## Wait for all the files to be generated
 files_generated=0
 while [ $files_generated -lt $NUM_USERS ]; do
     files_generated=0
@@ -200,13 +200,14 @@ while [ $files_generated -lt $NUM_USERS ]; do
         client_conf="/etc/wireguard/config/peer${i}/peer${i}.conf"
         if [[ -e "$client_conf" ]]; then
             files_generated=$((files_generated + 1))
+        else
+            sleep 1
         fi
     done
-    sleep 1
 done
 
 # Initialize an empty array for storing JSON objects
-json_payload='{"typeVpn": "wg"}'
+#json_payload='{"typeVpn": "wg"}'
 
 # Iterate through all configuration files
 rabbit_data=""
