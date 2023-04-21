@@ -30,6 +30,7 @@ if [ "$INSTANCE_CLOUD" == "DIGITAL_OCEAN" ]; then
 fi
 if [ ! -z $LINODE_ID ]; then
   export INSTANCE_ID=$LINODE_ID
+  hostnamectl set-hostname $INSTANCE_ID
 fi
 
 # Set output file
