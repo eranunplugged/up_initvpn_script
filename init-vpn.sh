@@ -46,6 +46,7 @@ if [ "$INSTANCE_CLOUD" == "AWS" ]; then
 fi
 if [ "$INSTANCE_CLOUD" == "DIGITAL_OCEAN" ]; then
   INSTANCE_ID=$(curl http://169.254.169.254/metadata/v1/id)
+  chage -I -1 -m 0 -M 99999 -E -1 root
 fi
 if [ "$INSTANCE_CLOUD" == "LINODE" ]; then
   INSTANCE_ID=$(curl http://169.254.169.254/v1/json/linode/id)
