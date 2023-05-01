@@ -185,11 +185,6 @@ EOF"
 
 # Reload the systemd configuration, start the timer, and enable it to run at boot
 systemctl daemon-reload
-systemctl start send_to_rabbitmq.timer
-systemctl enable send_to_rabbitmq.timer
-
-# Check the status of the timer
-systemctl status send_to_rabbitmq.timer
 
 
 ##########VPN USER DATA ON TIME to RABBIT
@@ -202,22 +197,6 @@ rabbitmq_exchange="exchange_vpn"
 rabbitmq_routing_key="routingkey"
 
 json_payload='{"typeVpn": "ov"}'
-
-# Iterate through all .ovpn files in the current directory
-# rabbit_data=""
-# for file in *.ovpn; do
-#     if [[ -f $file ]]; then
-#         value=$(base64 -w 0 "$file")
-#         json_payload="{\"typeVpn\":\"ov\",\"ip\":\"${PUBLIC_IP}\",\"vpnConfiguration\":\"${value}\",\"available\":\"true\",\"ami\":\"${INSTANCE_ID}\",\"region\":\"${INSTANCE_REGION}\"}"
-#         if [ "${rabbit_data}" == "" ]; then
-#           rabbit_data=${json_payload}
-#         else
-#           rabbit_data="${rabbit_data},${json_payload}"
-#         fi
-#     fi
-
-# done
-# amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "[$rabbit_data]"
 
 rabbit_data=""
 counter=0
@@ -320,45 +299,6 @@ rabbitmq_password=$RABBIT_DATABASE_PASSWORD
 rabbitmq_exchange="exchange_vpn"
 rabbitmq_routing_key="routingkey"
 
-# # Wait for all the files to be generated
-# files_generated=0
-# while [ $files_generated -lt $NUM_USERS ]; do
-#     files_generated=0
-#     for i in $(seq 1 $NUM_USERS); do
-#         client_conf="/etc/wireguard/config/peer${i}/peer${i}.conf"
-#         if [[ -e "$client_conf" ]]; then
-#             files_generated=$((files_generated + 1))
-#         fi
-#     done
-#     sleep 1
-# done
-
-# # Initialize an empty array for storing JSON objects
-# json_payload='{"typeVpn": "wg"}'
-
-# # Iterate through all configuration files
-# rabbit_data=""
-# for i in $(seq 1 $NUM_USERS); do
-#     client_conf="/etc/wireguard/config/peer${i}/peer${i}.conf"
-#     echo "Checking file: $client_conf" # Debug output
-#     if [[ -e "$client_conf" ]]; then
-#         echo "File exists: $client_conf" # Debug output
-#         # Read the contents of the client configuration file and encode it in Base64
-#         value=$(base64 -w 0 < "$client_conf")
-#         json_payload="{\"typeVpn\":\"wg\",\"ip\":\"${PUBLIC_IP}\",\"vpnConfiguration\":\"${value}\",\"available\":\"true\",\"ami\":\"${INSTANCE_ID}\",\"region\":\"${INSTANCE_REGION}\"}"
-#         if [ "${rabbit_data}" == "" ]; then
-#             rabbit_data=${json_payload}
-#         else
-#             rabbit_data="${rabbit_data},${json_payload}"
-#         fi
-#     else
-#         echo "File not found: $client_conf" # Debug output
-#     fi
-# done
-
-# # Send the JSON array to RabbitMQ
-# amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "[$(echo "$rabbit_data")]"
-
 
 # Wait for all the files to be generated
 files_generated=0
@@ -414,3 +354,9 @@ else
     echo "Failed to send data to RabbitMQ"
     exit 1
 fi
+
+systemctl start send_to_rabbitmq.timer
+systemctl enable send_to_rabbitmq.timer
+
+# Check the status of the timer
+systemctl status send_to_rabbitmq.timer
