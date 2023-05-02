@@ -7,6 +7,7 @@ rabbitmq_user="%%RABBIT_DATABASE_USERNAME%%"
 rabbitmq_password="%%RABBIT_DATABASE_PASSWORD%%"
 rabbitmq_exchange="exchange_ping"
 rabbitmq_routing_key="routingKeyPing"
+type="%%INSTANCE_CLOUD%%"
 ami="%%INSTANCE_ID%%"
 
 # Time
@@ -57,12 +58,13 @@ point=$(jq -n --arg lat "$latitude" --arg  lon "$longitude" --arg city "$city" '
 # Create JSON payload
 payload=$(jq -n --arg time "$time" \
                --arg ami "$ami" \
-               --arg ip "$public_ip" \
+               --arg type "$type"\
+               --arg ip "$public_ip"\
                --arg cpu "$cpu" \
                --arg serverStatusUP "$serverStatusUP" \
                --arg region "%%INSTANCE_REGION%%" \
                --argjson point "$point" \
-               '{time: $time, ami: $ami, ip: $ip, cpu: $cpu, serverStatusUP: $serverStatusUP, region: $region, point: $point}')
+               '{time: $time, ami: $ami, type: $type, ip: $ip, cpu: $cpu, serverStatusUP: $serverStatusUP, region: $region, point: $point}')
 
 # Send data to RabbitMQ
 echo "Sending data to RabbitMQ: $payload"
