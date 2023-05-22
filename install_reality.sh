@@ -61,7 +61,6 @@ for i in $(seq 1 $NUM_USERS); do
   else
     uuids="$uuids,$uuid"
   fi
-  value=$(base64 -w 0 < "$client_conf")
   json_payload="vless://${XRAY_UUID}@${PUBLIC_IP}:443?security=reality&encryption=none&pbk=${X_PUBLIC_KEY}&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.google-analytics.com&sid=$uuid#"
   if [ "${rabbit_data}" == "" ]; then
       rabbit_data=${json_payload}
@@ -83,7 +82,8 @@ echp "$UUIDS"
 # shellcheck disable=SC2086
 curl -s -o config.json https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/reality_config.json
 sed -e "s/CLIENTS/$clients" \
-  -e "s/SHORT_IDS/$UUIDS" config.json
+  -e "s/SHORT_IDS/$UUIDS" \
+  -e "s/PRIVATE_KEY/$X_PRIVATE_KEY" config.json
 cat config.json
 systemctl daemon-reload && sudo systemctl enable --now xray
 
