@@ -16,14 +16,16 @@ root soft     nofile         655350
 root hard     nofile         655350
 EOF
 
+sysctl -p
+
 cat << EOF > /etc/systemd/system/xray.service
 [Unit]
 Description=XTLS Xray-Core a VMESS/VLESS Server
 After=network.target nss-lookup.target
 [Service]
 # Change to your username <---
-User=USERNAME
-Group=USERNAME
+User=root
+Group=root
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
@@ -58,7 +60,6 @@ uuid=$(./xray uuid -i Secret)
 clients="{\"id\": \"${uuid}\",\"flow\": \"xtls-rprx-vision\"}"
 for i in $(seq 1 ${NUM_USERS}); do
   sid=$(openssl rand -hex 8)
-  echo "sid: $sid, uuid: $uuid "
   if [ -z "$sids" ]; then
     sids=$sid
   else
@@ -67,7 +68,6 @@ for i in $(seq 1 ${NUM_USERS}); do
   value=$(echo "vless://${uuid}@${PUBLIC_IP}:443?security=reality&encryption=none&pbk=${X_PUBLIC_KEY}&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.google-analytics.com&sid=$sid#" | base64 -w0)
   json_payload="{\"protocol\":\"REALITY\",\"ip\":\"${PUBLIC_IP}\",\"vpnConfiguration\":\"${value}\",\"available\":\"true\",\"ami\":\"${INSTANCE_ID}\",\"region\":\"${INSTANCE_REGION}\"}"
 
-  echo "${json_payload}"
   if [ "${rabbit_data}" == "" ]; then
       rabbit_data=${json_payload}
   else
