@@ -42,16 +42,25 @@ function install_openvpn() {
 }
 
 function install_elastic() {
-  if [ ! -z "${ES_ENABLED}" ]; then
+  if [ -n "${ES_ENABLED}" ]; then
+    [ -z "${ES_PREFIX}" ] && echo "Need to set elastic prefix" && return
+    [ -z "${ES_CLOUD_URL}" ] && echo "Need to set elastic cloud url" && return
+    [ -z "${ES_ENROLLMENT_TOKEN}" ] && echo "Need to set elastic token" && return
+    # shellcheck disable=SC2086
     curl -L -O https://artifacts.elastic.co/downloads/beats/elastic-agent/${ES_PREFIX}.tar.gz
+    # shellcheck disable=SC2086
     tar xzvf ${ES_PREFIX}.tar.gz
     cd "${ES_PREFIX}" || exit
+    # shellcheck disable=SC2086
     ./elastic-agent install -f -n --url=${ES_CLOUD_URL} --enrollment-token=${ES_ENROLLMENT_TOKEN}
+    # shellcheck disable=SC2086
+    # shellcheck disable=SC2164
     cd ${OLDPWD}
   fi
 }
 function install_wireguard() {
   $(vpn_protocol_enables WIREGUARD) || return
+  # shellcheck disable=SC2086
   curl -o install_wireguard.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/install_wireguard.sh
   chmod 777 install_wireguard.sh
   ./install_wireguard.sh
@@ -59,63 +68,15 @@ function install_wireguard() {
 
 function install_reality(){
   $(vpn_protocol_enables REALITY) || return
+  [ -n "$DISABLE_REALITY" ] && return
+
 }
 
 function install_rabitmq_sender() {
-  TMPDIR=$(mktemp)
-  cd "${TMPDIR}"
-  curl -o send_to_rabbitmq_template.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/send_to_rabbitmq_template.sh
-
-  # Set the user, group, and script path
-    service_user="root"
-    service_group="root"
-    service_script_path="/usr/local/bin/send_to_rabbitmq.sh"
-
-  ########Create rabbitmq stats sender#######
-  sed -e "s/%%RABBIT_HOST%%/$RABBIT_HOST/" \
-      -e "s/%%RABBIT_PORT%%/$RABBIT_PORT/" \
-      -e "s/%%RABBIT_DATABASE_USERNAME%%/$RABBIT_DATABASE_USERNAME/" \
-      -e "s/%%RABBIT_DATABASE_PASSWORD%%/$RABBIT_DATABASE_PASSWORD/" \
-      -e "s/%%INSTANCE_ID%%/$INSTANCE_ID/" \
-      -e "s/%%PUBLIC_IP%%/$PUBLIC_IP/" \
-      -e "s/%%INSTANCE_REGION%%/$INSTANCE_REGION/" \
-      send_to_rabbitmq_template.sh > ${service_script_path}
-
-  chmod +x ${service_script_path}
-
-
-
-  # Create the send_to_rabbitmq.service file
-  cat << EOF > /etc/systemd/system/send_to_rabbitmq.service
-  [Unit]
-  Description=Send server info to RabbitMQ
-
-  [Service]
-  Type=oneshot
-  User=${service_user}
-  Group=${service_group}
-  ExecStart=${service_script_path}
-EOF
-
-  # Create the send_to_rabbitmq.timer file
-  cat << EOF > /etc/systemd/system/send_to_rabbitmq.timer
-  [Unit]
-  Description=Send server info to RabbitMQ every minute
-
-  [Timer]
-  OnCalendar=*-*-* *:0/1:00
-  Unit=send_to_rabbitmq.service
-
-  [Install]
-  WantedBy=timers.target
-EOF
-
-  # Reload the systemd configuration, start the timer, and enable it to run at boot
-  systemctl daemon-reload
-  systemctl enable --now send_to_rabbitmq.timer
-
-  # Check the status of the timer
-  systemctl status send_to_rabbitmq.timer
-
-
+  # no need to send data if no protocol was installed
+  [ -z "$VPN_TYPES" ] && return
+  # shellcheck disable=SC2086
+  curl -o send_to_rabbitmq.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/send_to_rabbitmq.sh
+  chmod 777 send_to_rabbitmq.sh
+  ./send_to_rabbitmq.sh
 }

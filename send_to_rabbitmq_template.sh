@@ -43,16 +43,7 @@ cpu=$USAGE_PERCENT
 
 # Server status (true if the server is up, false otherwise)
 serverStatusUP=true
-
-# Point (latitude and longitude)
-location_data=$(curl -s "http://ip-api.com/json/$public_ip")
-latitude=$(echo "$location_data" | jq -r '.lat')
-longitude=$(echo "$location_data" | jq -r '.lon')
-city=$(echo "$location_data" | jq -r '.city')
-point=$(jq -n --arg lat "$latitude" --arg  lon "$longitude" --arg city "$city" '{lat: $lat, lon: $lon, city: $city}')
-
-
-
+point=$(cat /etc/up/point)
 
 # Create JSON payload
 payload=$(jq -n --arg time "$time" \
