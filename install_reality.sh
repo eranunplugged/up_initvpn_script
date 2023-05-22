@@ -49,19 +49,20 @@ X25519=$(./xray x25519)
 X_PRIVATE_KEY=$(echo "$X25519" | cut -d " " -f 3)
 X_PUBLIC_KEY=$(echo "$X25519" | cut -d " " -f 5)
 for i in $(seq 1 $NUM_USERS); do
-  XRAY_UUID=$(./xray uuid -i Secret)
-  uuid=$(openssl rand -hex 8)
+  uuid=$(./xray uuid -i Secret)
+  sid=$(openssl rand -hex 8)
+  echp "sid: $sid, uuid: $uuid "
   if [ -z "$clients" ]; then
-    clients="{\"id\": \"${XRAY_UUID}\",\"flow\": \"xtls-rprx-vision\"}"
+    clients="{\"id\": \"${uuid}\",\"flow\": \"xtls-rprx-vision\"}"
   else
-        clients="$clients,{\"id\": \"${XRAY_UUID}\",\"flow\": \"xtls-rprx-vision\"}"
+        clients="$clients,{\"id\": \"${uuid}\",\"flow\": \"xtls-rprx-vision\"}"
   fi
-  if [ -z "$uuids" ]; then
-    uuids=$uuid
+  if [ -z "$sids" ]; then
+    sids=$sid
   else
-    uuids="$uuids,$uuid"
+    sids="$sids,$sid"
   fi
-  json_payload="vless://${XRAY_UUID}@${PUBLIC_IP}:443?security=reality&encryption=none&pbk=${X_PUBLIC_KEY}&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.google-analytics.com&sid=$uuid#"
+  json_payload="vless://${uuid}@${PUBLIC_IP}:443?security=reality&encryption=none&pbk=${X_PUBLIC_KEY}&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.google-analytics.com&sid=$sid#"
   if [ "${rabbit_data}" == "" ]; then
       rabbit_data=${json_payload}
   else
@@ -71,18 +72,19 @@ for i in $(seq 1 $NUM_USERS); do
 
   # Send rabbit_data in batches of 10
   if [ $counter -eq 10 ]; then
-      amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "[$rabbit_data]"
-      rabbit_data=""
-      counter=0
+    echo "${rabbit_data}"
+    amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "[$rabbit_data]"
+    rabbit_data=""
+    counter=0
   fi
 done
 # shellcheck disable=SC2086
-UUIDS=$(echo \"$uuids\" | jq -c 'split(",")')
-echp "$UUIDS"
+SIDS=$(echo \"$sids\" | jq -c 'split(",")')
+echp "$SIDS"
 # shellcheck disable=SC2086
 curl -s -o config.json https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/reality_config.json
 sed -e "s/CLIENTS/$clients" \
-  -e "s/SHORT_IDS/$UUIDS" \
+  -e "s/SHORT_IDS/$SIDS" \
   -e "s/PRIVATE_KEY/$X_PRIVATE_KEY" config.json
 cat config.json
 systemctl daemon-reload && sudo systemctl enable --now xray
