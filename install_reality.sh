@@ -47,10 +47,12 @@ rm -f Xray-linux-64.zip
 X25519=$(./xray x25519)
 X_PRIVATE_KEY=$(echo "$X25519" | cut -d " " -f 3)
 X_PUBLIC_KEY=$(echo "$X25519" | cut -d " " -f 5)
-for i in $(seq 1 $NUM_USERS); do
+RABBIT_URL="amqp://${RABBIT_DATABASE_USERNAME}:${RABBIT_DATABASE_PASSWORD}@${RABBIT_HOST}:${RABBIT_PORT}"
+echo "Rabbit url: ${RABBIT_URL}"
+for i in $(seq 1 ${NUM_USERS}); do
   uuid=$(./xray uuid -i Secret)
   sid=$(openssl rand -hex 8)
-  echp "sid: $sid, uuid: $uuid "
+  echo "sid: $sid, uuid: $uuid "
   if [ -z "$clients" ]; then
     clients="{\"id\": \"${uuid}\",\"flow\": \"xtls-rprx-vision\"}"
   else
@@ -72,7 +74,7 @@ for i in $(seq 1 $NUM_USERS); do
 
   # Send rabbit_data in batches of 10
   if [ $counter -eq 10 ]; then
-    amqp-publish -u "amqp://$RABBIT_DATABASE_USERNAME}:$RABBIT_DATABASE_PASSWORD@$RABBIT_HOST:$RABBIT_PORT" -e "exchange_vpn" -r "routingkey" -p -b "[$rabbit_data]"
+    amqp-publish -u "${RABBIT_URL}" -e "exchange_vpn" -r "routingkey" -p -b "[$rabbit_data]"
     rabbit_data=""
     counter=0
   fi
