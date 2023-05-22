@@ -26,22 +26,19 @@ function vpn_protocol_enables() {
 function install_openvpn() {
   $(vpn_protocol_enables OPENVPN) || return
   [ -z "${OVPN_PORT}" ] && export OVPN_PORT=443
-  if [ $(vpn_protocol_enables OPENVPN) ]; then
-    export DISABLE_REALITY=1
-    curl -o ovpn-gen-peers.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/ovpn-gen-peers.sh
-    chmod 777 ovpn-gen-peers.sh
+  export DISABLE_REALITY=1
+  curl -o ovpn-gen-peers.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/ovpn-gen-peers.sh
+  chmod 777 ovpn-gen-peers.sh
 
-    export OVPN_DATA="ovpn-data"
-    export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
-    docker volume create --name $OVPN_DATA
-    docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_genconfig -u tcp://${PUBLIC_IP}:${OVPN_PORT}
-    sed -i "s/1194/${OVPN_PORT}/i" /var/lib/docker/volumes/${OVPN_DATA}/_data/openvpn.conf
-    docker run -v $OVPN_DATA:/etc/openvpn -d -p ${OVPN_PORT}:${OVPN_PORT}/tcp --cap-add=NET_ADMIN --name ovpn protectvpn/ovpn:${OVPN_IMAGE_VERSION}
-    docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_initpki nopass
-    ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
-    ./ovpn-gen-peers.sh >/tmp/ovpn-gen.log 2>&1 &
-
-  fi
+  export OVPN_DATA="ovpn-data"
+  export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
+  docker volume create --name $OVPN_DATA
+  docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_genconfig -u tcp://${PUBLIC_IP}:${OVPN_PORT}
+  sed -i "s/1194/${OVPN_PORT}/i" /var/lib/docker/volumes/${OVPN_DATA}/_data/openvpn.conf
+  docker run -v $OVPN_DATA:/etc/openvpn -d -p ${OVPN_PORT}:${OVPN_PORT}/tcp --cap-add=NET_ADMIN --name ovpn protectvpn/ovpn:${OVPN_IMAGE_VERSION}
+  docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_initpki nopass
+  ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
+  ./ovpn-gen-peers.sh >/tmp/ovpn-gen.log 2>&1 &
 }
 
 function install_elastic() {
@@ -55,7 +52,7 @@ function install_elastic() {
 }
 function install_wireguard() {
   $(vpn_protocol_enables WIREGUARD) || return
-  curl -o functions.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/install_wireguard.sh
+  curl -o install_wireguard.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/install_wireguard.sh
   chmod 777 install_wireguard.sh
   ./install_wireguard
 }
