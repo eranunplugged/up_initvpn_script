@@ -1,5 +1,5 @@
 #!/bin/bash
-TMPDIR=$(mktemp)
+TMPDIR=$(mktemp -d)
 cd "${TMPDIR}"
 curl -o send_to_rabbitmq_template.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/send_to_rabbitmq_template.sh
 
@@ -10,7 +10,7 @@ service_script_path="/usr/local/bin/send_to_rabbitmq.sh"
 
 # Point (latitude and longitude)
 mkdir -p /etc/up
-location_data=$(curl -s "http://ip-api.com/json/$public_ip")
+location_data=$(curl -s "http://ip-api.com/json/$PUBLIC_IP")
 latitude=$(echo "$location_data" | jq -r '.lat')
 longitude=$(echo "$location_data" | jq -r '.lon')
 city=$(echo "$location_data" | jq -r '.city')
