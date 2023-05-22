@@ -17,7 +17,7 @@
       "protocol": "vless",
       "settings": {
         "clients": [
-         CLIENTS
+         REALITY_CLIENTS
         ],
         "decryption": "none"
       },
@@ -31,13 +31,11 @@
           "serverNames": [
             "www.google-analytics.com"
           ],
-          "privateKey": PRIVATE_KEY,
+          "privateKey": "REALITY_PRIVATE_KEY",
           "minClientVer": "1.8.0",
           "maxClientVer": "",
           "maxTimeDiff": 0,
-          "shortIds": [
-            SHORT_IDS
-          ]
+          "shortIds": REALITY_SHORT_IDS
         }
       },
       "sniffing": {
