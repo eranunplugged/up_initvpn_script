@@ -47,19 +47,18 @@ wget https://github.com/XTLS/Xray-core/releases/download/v1.8.1/Xray-linux-64.zi
 unzip Xray-linux-64.zip
 rm -f Xray-linux-64.zip
 X25519=$(./xray x25519)
-X_PRIVATE_KEY=$(echo "$X25519" | cut -d " " -f 3)
-X_PUBLIC_KEY=$(echo "$X25519" | cut -d " " -f 5)
+echo "X25519:"
+echo "$X25519"
+X_PRIVATE_KEY=$(echo "$X25519" | head -1 | cut -d " " -f 3)
+echo "X_PRIVATE_KEY: $X_PRIVATE_KEY"
+X_PUBLIC_KEY=$(echo "$X25519" | tail -1 | cut -d " " -f 3)
 RABBIT_URL="amqp://${RABBIT_DATABASE_USERNAME}:${RABBIT_DATABASE_PASSWORD}@${RABBIT_HOST}:${RABBIT_PORT}"
 echo "Rabbit url: ${RABBIT_URL}"
+uuid=$(./xray uuid -i Secret)
+clients="{\"id\": \"${uuid}\",\"flow\": \"xtls-rprx-vision\"}"
 for i in $(seq 1 ${NUM_USERS}); do
-  uuid=$(./xray uuid -i Secret)
   sid=$(openssl rand -hex 8)
   echo "sid: $sid, uuid: $uuid "
-  if [ -z "$clients" ]; then
-    clients="{\"id\": \"${uuid}\",\"flow\": \"xtls-rprx-vision\"}"
-  else
-        clients="$clients,{\"id\": \"${uuid}\",\"flow\": \"xtls-rprx-vision\"}"
-  fi
   if [ -z "$sids" ]; then
     sids=$sid
   else
