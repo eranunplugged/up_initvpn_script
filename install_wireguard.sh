@@ -8,7 +8,7 @@ export SERVER_IP="10.0.0.1"
 export WAN_INTERFACE_NAME=$(ip r | grep default | awk {'print $5'})
 # Update package list and install required dependencies
 apt-get update
-apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+apt-get install -y apt-transport-https ca-certificates curl software-properties-common wireguard-dkms wireguard-tools
 
 # Install Docker Compose
 curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
