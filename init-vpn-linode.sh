@@ -30,7 +30,7 @@ elif [ ! -z $LINODE_ID ]; then
   export INSTANCE_ID=$LINODE_ID
 fi
 
-hostnamectl set-hostname linode-${INSTANCE_REGION}-${INSTANCE_ID}
+hostnamectl set-hostname ${INSTANCE_CLOUD}-${INSTANCE_REGION}-${INSTANCE_ID}
 
 # Set output file
 OUTPUT_FILE="./output.txt"

@@ -44,7 +44,7 @@ function install_openvpn() {
 }
 
 function install_elastic() {
-  if [ ! -z ${ES_ENABLED} ]; then
+  if [ ! -z "${ES_ENABLED}" ]; then
     curl -L -O https://artifacts.elastic.co/downloads/beats/elastic-agent/${ES_PREFIX}.tar.gz
     tar xzvf ${ES_PREFIX}.tar.gz
     cd "${ES_PREFIX}" || exit
