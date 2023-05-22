@@ -1,7 +1,7 @@
 
 [ ! $(vpn_protocol_enabled WIREGUARD) ] && return
 
-cd /etc/wireguard
+cd /etc/wireguard || exit
 umask 077
 export ENDPOINT=$(dig +short myip.opendns.com @resolver1.opendns.com)
 export SERVER_IP="10.0.0.1"

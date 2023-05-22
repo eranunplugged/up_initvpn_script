@@ -24,7 +24,8 @@ function vpn_protocol_enables() {
 }
 
 function install_openvpn() {
-  [ -z ${OVPN_PORT} ] && export OVPN_PORT=443
+  $(vpn_protocol_enables OPENVPN) || return
+  [ -z "${OVPN_PORT}" ] && export OVPN_PORT=443
   if [ $(vpn_protocol_enables OPENVPN) ]; then
     export DISABLE_REALITY=1
     curl -o ovpn-gen-peers.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/ovpn-gen-peers.sh
@@ -57,6 +58,10 @@ function install_wireguard() {
   curl -o functions.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/install_wireguard.sh
   chmod 777 install_wireguard.sh
   ./install_wireguard
+}
+
+function install_reality(){
+  $(vpn_protocol_enables REALITY) || return
 }
 
 function install_rabitmq_sender() {
