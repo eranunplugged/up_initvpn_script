@@ -36,14 +36,14 @@ rabbitmq_user=$RABBIT_DATABASE_USERNAME
 rabbitmq_password=$RABBIT_DATABASE_PASSWORD
 rabbitmq_exchange="exchange_vpn"
 rabbitmq_routing_key="routingkey"
-json_payload='{"typeVpn": "ov"}'
+json_payload='{"protocol": "OPENVPN"}'
 rabbit_data=""
 counter=0
 cd /var/lib/docker/volumes/$OVPN_DATA/_data/peers
 for file in *.ovpn; do
     if [[ -f $file ]]; then
         value=$(base64 -w 0 "$file")
-        json_payload="{\"typeVpn\":\"ov\",\"ip\":\"${PUBLIC_IP}\",\"vpnConfiguration\":\"${value}\",\"available\":\"true\",\"ami\":\"${INSTANCE_ID}\",\"region\":\"${INSTANCE_REGION}\"}"
+        json_payload="{\"protocol\":\"OPENVPN\",\"ip\":\"${PUBLIC_IP}\",\"vpnConfiguration\":\"${value}\",\"available\":\"true\",\"ami\":\"${INSTANCE_ID}\",\"region\":\"${INSTANCE_REGION}\"}"
         if [ "${rabbit_data}" == "" ]; then
           rabbit_data=${json_payload}
         else
