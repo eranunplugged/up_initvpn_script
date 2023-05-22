@@ -65,7 +65,9 @@ for i in $(seq 1 ${NUM_USERS}); do
   else
     sids="$sids,$sid"
   fi
-  json_payload="vless://${uuid}@${PUBLIC_IP}:443?security=reality&encryption=none&pbk=${X_PUBLIC_KEY}&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.google-analytics.com&sid=$sid#"
+  value=$(echo"vless://${uuid}@${PUBLIC_IP}:443?security=reality&encryption=none&pbk=${X_PUBLIC_KEY}&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.google-analytics.com&sid=$sid#" | base64 -w0)
+  json_payload="{\"protocol\":\"OPENVPN\",\"ip\":\"${PUBLIC_IP}\",\"vpnConfiguration\":\"${value}\",\"available\":\"true\",\"ami\":\"${INSTANCE_ID}\",\"region\":\"${INSTANCE_REGION}\"}"
+
   echo "${json_payload}"
   if [ "${rabbit_data}" == "" ]; then
       rabbit_data=${json_payload}
