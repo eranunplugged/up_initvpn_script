@@ -89,9 +89,10 @@ SIDS=$(echo \"$sids\" | jq -c 'split(",")')
 echo "SIDS: $SIDS"
 # shellcheck disable=SC2086
 curl -s -o config.json https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/reality_config.json
-sed -e "s/CLIENTS/$clients/i" config.json
-sed -e "s/SHORT_IDS/$SIDS/i" config.json
-sed -e "s/PRIVATE_KEY/$X_PRIVATE_KEY/i" config.json
+perl -i -pe "s/PRIVATE_KEY/$X_PRIVATE_KEY/i" config.json
+perl -i -pe "s/SHORT_IDS/$SIDS/i" config.json
+perl -i -pe "s/CLIENTS/$clients/i" config.json
+
 cat config.json
 systemctl daemon-reload && sudo systemctl enable --now xray
 
