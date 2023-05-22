@@ -62,7 +62,7 @@ function install_reality(){
 }
 
 function install_rabitmq_sender() {
-  TMPDIR=$(mktmp)
+  TMPDIR=$(mktemp)
   cd "${TMPDIR}"
   curl -o send_to_rabbitmq_template.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/send_to_rabbitmq_template.sh
 
