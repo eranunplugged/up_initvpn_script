@@ -69,7 +69,10 @@ function install_wireguard() {
 function install_reality(){
   $(vpn_protocol_enables REALITY) || return
   [ -n "$DISABLE_REALITY" ] && return
-
+  # shellcheck disable=SC2086
+  curl -o install_reality.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/install_reality.sh
+  chmod 777 install_reality.sh
+  ./install_reality.sh
 }
 
 function install_rabitmq_sender() {
