@@ -78,7 +78,7 @@ for i in $(seq 1 ${NUM_USERS}); do
 
   # Send rabbit_data in batches of 10
   if [ $counter -eq 10 ]; then
-    echp "$i: sending"
+    echo "$i: sending"
     amqp-publish -u "${RABBIT_URL}" -e "exchange_vpn" -r "routingkey" -p -b "[$rabbit_data]"
     rabbit_data=""
     counter=0
