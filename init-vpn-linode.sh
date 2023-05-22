@@ -20,6 +20,7 @@ install_up_ssh_certificate
 install_docker
 install_vault
 apt install -y software-properties-common unzip jq amqp-tools default-jre sysstat awscli gpg  qrencode apt-transport-https ca-certificates curl software-properties-common dnsutils
+export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
 
 if [ "$INSTANCE_CLOUD" == "AWS" ]; then
   export INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)

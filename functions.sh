@@ -31,7 +31,6 @@ function install_openvpn() {
   chmod 777 ovpn-gen-peers.sh
 
   export OVPN_DATA="ovpn-data"
-  export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
   docker volume create --name $OVPN_DATA
   docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_genconfig -u tcp://${PUBLIC_IP}:${OVPN_PORT}
   sed -i "s/1194/${OVPN_PORT}/i" /var/lib/docker/volumes/${OVPN_DATA}/_data/openvpn.conf
