@@ -57,7 +57,7 @@ function install_wireguard() {
   curl -o functions.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/install_wireguard.sh
   chmod 777 install_wireguard.sh
   ./install_wireguard
-}ֿֿֿ
+}
 
 function install_rabitmq_sender() {
   TMPDIR=$(mktpm)
