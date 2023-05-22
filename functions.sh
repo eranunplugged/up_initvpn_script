@@ -54,7 +54,7 @@ function install_wireguard() {
   $(vpn_protocol_enables WIREGUARD) || return
   curl -o install_wireguard.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/install_wireguard.sh
   chmod 777 install_wireguard.sh
-  ./install_wireguard
+  ./install_wireguard.sh
 }
 
 function install_reality(){
