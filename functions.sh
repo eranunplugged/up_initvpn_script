@@ -65,8 +65,8 @@ function install_reality(){
 }
 
 function install_rabitmq_sender() {
-  TMPDIR=$(mktpm)
-  cd ${TMPDIR}
+  TMPDIR=$(mktmp)
+  cd "${TMPDIR}"
   curl -o send_to_rabbitmq_template.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/send_to_rabbitmq_template.sh
 
   # Set the user, group, and script path
@@ -89,7 +89,7 @@ function install_rabitmq_sender() {
 
 
   # Create the send_to_rabbitmq.service file
-  bash -c "cat << EOF > /etc/systemd/system/send_to_rabbitmq.service
+  cat << EOF > /etc/systemd/system/send_to_rabbitmq.service
   [Unit]
   Description=Send server info to RabbitMQ
 
@@ -98,10 +98,10 @@ function install_rabitmq_sender() {
   User=${service_user}
   Group=${service_group}
   ExecStart=${service_script_path}
-  EOF"
+EOF
 
   # Create the send_to_rabbitmq.timer file
-  bash -c "cat << EOF > /etc/systemd/system/send_to_rabbitmq.timer
+  cat << EOF > /etc/systemd/system/send_to_rabbitmq.timer
   [Unit]
   Description=Send server info to RabbitMQ every minute
 
@@ -111,7 +111,7 @@ function install_rabitmq_sender() {
 
   [Install]
   WantedBy=timers.target
-  EOF"
+EOF
 
   # Reload the systemd configuration, start the timer, and enable it to run at boot
   systemctl daemon-reload
