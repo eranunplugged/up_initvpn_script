@@ -52,9 +52,8 @@ set +a
 export NUM_USERS=${QUANTITY_GENERATED_VPNS:-10}
 #####################################
 install_elastic
-
-install_wireguard
 install_openvpn
+install_wireguard
 install_reality
 install_rabitmq_sender
 

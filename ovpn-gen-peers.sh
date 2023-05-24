@@ -41,7 +41,7 @@ counter=0
 mkdir -p /tmp/configs
 cd /tmp/configs
 for i in $(seq 1 ${NUM_USERS}); do
-  docker run -v ${OVPN_DATA}:/etc/openvpn --rm protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_getclient user${i} > /tmp/user${i}.ovpn;
+  docker run -v ${OVPN_DATA}:/etc/openvpn --rm protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_getclient user${i} > user${i}.ovpn;
 done
 for file in *.ovpn; do
     if [[ -f $file ]]; then

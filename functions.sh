@@ -62,7 +62,7 @@ function install_wireguard() {
   # shellcheck disable=SC2086
   curl -o install_wireguard.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/install_wireguard.sh
   chmod 777 install_wireguard.sh
-  ./install_wireguard.sh & 2>&1
+  ./install_wireguard.sh
 }
 
 function install_reality(){
