@@ -1,6 +1,6 @@
 
 apt-get update
-apt-get install -y apt-transport-https ca-certificates curl software-properties-common wireguard-dkms wireguard-tools
+apt-get install -y wireguard-dkms wireguard-tools
 
 cd /etc/wireguard || exit
 umask 077
