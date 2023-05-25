@@ -7,6 +7,12 @@
 # <UDF name="VPN_TYPES" label=""  />
 # This scripts is executed first
 
+# Disable password expiration for root user
+passwd -u root
+ROOT_PASSWD=$(date | md5sum | cut -c1-8)
+echo $ROOT_PASSWD | passwd root
+chage -I -1 -m 0 -M 99999 -E -1 root
+
 # Allow different environments to use different branches.
 [ -z ${BRANCH} ] && export BRANCH=main
 set -x
@@ -20,18 +26,17 @@ install_up_ssh_certificate
 install_docker
 install_vault
 apt install -y software-properties-common unzip jq amqp-tools default-jre sysstat awscli gpg  qrencode apt-transport-https ca-certificates curl software-properties-common dnsutils
+# shellcheck disable=SC2155
 export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
-
 if [ "$INSTANCE_CLOUD" == "AWS" ]; then
   export INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 elif [ "$INSTANCE_CLOUD" == "DIGITAL_OCEAN" ]; then
   export INSTANCE_ID=$(curl http://169.254.169.254/metadata/v1/id)
-  chage -I -1 -m 0 -M 99999 -E -1 root
 elif [ ! -z $LINODE_ID ]; then
   export INSTANCE_ID=$LINODE_ID
 fi
 
-hostnamectl set-hostname ${INSTANCE_CLOUD}-${INSTANCE_REGION}-${INSTANCE_ID}
+hostnamectl set-hostname ${INSTANCE_ID}
 
 # Set output file
 OUTPUT_FILE="./output.txt"
