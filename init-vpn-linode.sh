@@ -10,7 +10,7 @@
 # Disable password expiration for root user
 passwd -u root
 ROOT_PASSWD=$(date | md5sum | cut -c1-8)
-echo $ROOT_PASSWD | passwd root
+echo "root:$ROOT_PASSWD" | chpasswd
 chage -I -1 -m 0 -M 99999 -E -1 root
 
 # Allow different environments to use different branches.
