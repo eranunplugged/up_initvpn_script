@@ -256,11 +256,12 @@ chmod +x /usr/local/bin/docker-compose
 
 # Create Docker Compose configuration
 mkdir -p ~/wireguard-docker
+docker login ghcr.io -u eranunplugged -p ${GTOKEN}
 cat << EOF > ~/wireguard-docker/docker-compose.yml
 version: "2.1"
 services:
   wireguard:
-    image: lscr.io/linuxserver/wireguard:latest
+    image: ghcr.io/eranunplugged/up_wireguard:latest
     container_name: wireguard
     cap_add:
       - NET_ADMIN
