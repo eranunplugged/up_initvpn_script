@@ -91,6 +91,7 @@ for i in $(seq 1 $NUM_USERS); do
 
         # Send rabbit_data in batches of 10
         if [ $counter -eq 10 ]; then
+            echo "Sending $rabbit_data to rabbitmq"
             amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "[$rabbit_data]"
             rabbit_data=""
             counter=0
