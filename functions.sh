@@ -36,7 +36,7 @@ function install_openvpn() {
   sed -i "s/1194/${OVPN_PORT}/i" /var/lib/docker/volumes/${OVPN_DATA}/_data/openvpn.conf
   docker run -v $OVPN_DATA:/etc/openvpn -d -p ${OVPN_PORT}:${OVPN_PORT}/tcp --cap-add=NET_ADMIN --name ovpn protectvpn/ovpn:${OVPN_IMAGE_VERSION}
   docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_initpki nopass
-  ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
+  ls -la /var/lib/docker/volumes/$OVPN_DATA/_data/pki/issued/
   ./ovpn-gen-peers.sh >/tmp/ovpn-gen.log 2>&1 &
 }
 
