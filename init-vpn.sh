@@ -89,16 +89,16 @@ systemctl enable --now docker
 export OVPN_DATA="ovpn-data"
 export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
 docker volume create --name $OVPN_DATA
-docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm protectvpn/ovpn ovpn_genconfig -u tcp://${PUBLIC_IP}:443
+docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm ghcr.io/eranunplugged/up_openvpn_xor ovpn_genconfig -u tcp://${PUBLIC_IP}:443
 sed -i 's/1194/443/i' /var/lib/docker/volumes/${OVPN_DATA}/_data/openvpn.conf
-docker run -v $OVPN_DATA:/etc/openvpn -d -p 443:443/tcp --cap-add=NET_ADMIN --name ovpn protectvpn/ovpn
+docker run -v $OVPN_DATA:/etc/openvpn -d -p 443:443/tcp --cap-add=NET_ADMIN --name ovpn ghcr.io/eranunplugged/up_openvpn_xor
 ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
-docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 protectvpn/ovpn ovpn_initpki nopass
+docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 ghcr.io/eranunplugged/up_openvpn_xor ovpn_initpki nopass
 ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
 export NUM_USERS=${QUANTITY_GENERATED_VPNS:-10}
-docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 protectvpn/ovpn ovpn_genclientcert "user" nopass $NUM_USERS
+docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 ghcr.io/eranunplugged/up_openvpn_xor ovpn_genclientcert "user" nopass $NUM_USERS
 for i in $(seq 1 $NUM_USERS); do
-  docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -e DEBUG=1 protectvpn/ovpn ovpn_getclient "user$i" > "user$i.ovpn"
+  docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -e DEBUG=1 ghcr.io/eranunplugged/up_openvpn_xor ovpn_getclient "user$i" > "user$i.ovpn"
 done
 docker stop ovpn
 cat << EOF | sudo tee /etc/systemd/system/docker-openvpn@.service

@@ -32,10 +32,10 @@ function install_openvpn() {
 
   export OVPN_DATA="ovpn-data"
   docker volume create --name $OVPN_DATA
-  docker run -v ${OVPN_DATA}:/etc/openvpn --log-driver=none --rm protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_genconfig -u tcp://${PUBLIC_IP}:${OVPN_PORT}
+  docker run -v ${OVPN_DATA}:/etc/openvpn --log-driver=none --rm ghcr.io/eranunplugged/up_openvpn_xor:${OVPN_IMAGE_VERSION} ovpn_genconfig -u tcp://${PUBLIC_IP}:${OVPN_PORT}
   sed -i "s/1194/${OVPN_PORT}/i" /var/lib/docker/volumes/${OVPN_DATA}/_data/openvpn.conf
-  docker run -v $OVPN_DATA:/etc/openvpn -d -p ${OVPN_PORT}:${OVPN_PORT}/tcp --cap-add=NET_ADMIN --name ovpn protectvpn/ovpn:${OVPN_IMAGE_VERSION}
-  docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_initpki nopass
+  docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 ghcr.io/eranunplugged/up_openvpn_xor:${OVPN_IMAGE_VERSION} ovpn_initpki nopass
+  docker run -v $OVPN_DATA:/etc/openvpn -d -p ${OVPN_PORT}:${OVPN_PORT}/tcp --cap-add=NET_ADMIN --name ovpn ghcr.io/eranunplugged/up_openvpn_xor:${OVPN_IMAGE_VERSION}
   ls -la /var/lib/docker/volumes/$OVPN_DATA/_data/pki/issued/
   ./ovpn-gen-peers.sh >/tmp/ovpn-gen.log 2>&1 &
 }

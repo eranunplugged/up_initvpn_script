@@ -24,9 +24,8 @@ ExecStopPost=/bin/sh -c 'test -z "\$IP6_PREFIX" && exit 0; ip route del \$IP6_PR
 WantedBy=multi-user.target
 EOF
 
-docker run -v ${OVPN_DATA}:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_genclientcert "user" nopass $NUM_USERS
+docker run -v ${OVPN_DATA}:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 ghcr.io/eranunplugged/up_openvpn_xor:${OVPN_IMAGE_VERSION} ovpn_genclientcert "user" nopass $NUM_USERS
 docker stop ovpn
-systemctl enable --now docker-openvpn@ovpn.service
 
 
 rabbitmq_host=$RABBIT_HOST
@@ -38,13 +37,14 @@ rabbitmq_routing_key="routingkey"
 json_payload='{"protocol": "OPENVPN"}'
 rabbit_data=""
 counter=0
-mkdir -p /tmp/configs
-cd /tmp/configs
-for i in $(seq 1 ${NUM_USERS}); do
-  echo -n "Creating user${i}"
-  docker run -v ${OVPN_DATA}:/etc/openvpn --rm protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_getclient user${i} > user${i}.ovpn;
-  echo "    Done"
-done
+mkdir -p /tmp/exports
+cd /tmp/exports
+docker run -v ${OVPN_DATA}:/etc/openvpn -v /tmp/exports:/exports --log-driver=none --rm -i -e DEBUG=1 -t ghcr.io/eranunplugged/up_openvpn_xor ovpn_getclients ${NUM_USERS}
+#for i in $(seq 1 ${NUM_USERS}); do
+#  echo -n "Creating user${i}"
+#  docker run -v ${OVPN_DATA}:/etc/openvpn --rm protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_getclient user${i} > user${i}.ovpn;
+#  echo "    Done"
+#done
 for file in *.ovpn; do
     if [[ -f $file ]]; then
         value=$(base64 -w 0 "$file")
@@ -66,4 +66,5 @@ for file in *.ovpn; do
     fi
 done
 cd ${OLDPWD} || exit
-rm -rf /tmp/configs
+rm -rf /tmp/exports
+systemctl enable --now docker-openvpn@ovpn.service
