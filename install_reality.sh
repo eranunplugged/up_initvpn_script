@@ -48,6 +48,12 @@ sudo apt-get install unzip
 wget https://github.com/XTLS/Xray-core/releases/download/v1.8.1/Xray-linux-64.zip
 unzip Xray-linux-64.zip
 rm -f Xray-linux-64.zip
+if [ -z "$REALITY_EXTERNAL_HOST" ]; then
+  export REALITY_EXTERNAL_HOST="www.google-analytics.com"
+fi
+if [ -z "$REALITY_LISTEN_PORT" ]; then
+  export REALITY_LISTEN_PORT="443"
+fi
 X25519=$(./xray x25519)
 echo "X25519:"
 echo "$X25519"
@@ -65,7 +71,7 @@ for i in $(seq 1 ${NUM_USERS}); do
   else
     sids="$sids,$sid"
   fi
-  value=$(echo "vless://${uuid}@${PUBLIC_IP}:443?security=reality&encryption=none&pbk=${X_PUBLIC_KEY}&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.google-analytics.com&sid=$sid#" | base64 -w0)
+  value=$(echo "vless://${uuid}@${PUBLIC_IP}:${REALITY_LISTEN_PORT}?security=reality&encryption=none&pbk=${X_PUBLIC_KEY}&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=${REALITY_EXTERNAL_HOST}&sid=$sid#" | base64 -w0)
   json_payload="{\"protocol\":\"REALITY\",\"ip\":\"${PUBLIC_IP}\",\"vpnConfiguration\":\"${value}\",\"available\":\"true\",\"ami\":\"${INSTANCE_ID}\",\"region\":\"${INSTANCE_REGION}\"}"
 
   if [ "${rabbit_data}" == "" ]; then
@@ -91,6 +97,8 @@ curl -s -o config.json https://raw.githubusercontent.com/eranunplugged/up_initvp
 perl -i -pe "s/REALITY_PRIVATE_KEY/$X_PRIVATE_KEY/i" config.json
 perl -i -pe "s/REALITY_SHORT_IDS/$SIDS/i" config.json
 perl -i -pe "s/REALITY_CLIENTS/$clients/i" config.json
+perl -i -pe "s/REALITY_EXTERNAL_HOST/$REALITY_EXTERNAL_HOST/i" config.json
+perl -i -pe "s/REALITY_LISTEN_PORT/$REALITY_LISTEN_PORT/i" config.json
 
 cat config.json
 systemctl daemon-reload && sudo systemctl enable --now xray

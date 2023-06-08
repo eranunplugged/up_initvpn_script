@@ -13,7 +13,7 @@
   "inbounds": [
     {
       "listen": "0.0.0.0",
-      "port": 443,
+      "port": REALITY_LISTEN_PORT,
       "protocol": "vless",
       "settings": {
         "clients": [
@@ -26,10 +26,10 @@
         "security": "reality",
         "realitySettings": {
           "show": false,
-          "dest": "www.google-analytics.com:443",
+          "dest": "REALITY_EXTERNAL_HOST:443",
           "xver": 0,
           "serverNames": [
-            "www.google-analytics.com"
+            "REALITY_EXTERNAL_HOST"
           ],
           "privateKey": "REALITY_PRIVATE_KEY",
           "minClientVer": "1.8.0",
