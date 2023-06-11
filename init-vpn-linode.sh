@@ -56,6 +56,7 @@ set -a
 set +a
 export NUM_USERS=${QUANTITY_GENERATED_VPNS:-10}
 #####################################
+docker login ghcr.io -u eranunplugged -p ${GTOKEN}
 install_elastic
 install_openvpn
 install_wireguard
