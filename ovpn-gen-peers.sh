@@ -39,7 +39,7 @@ rabbit_data=""
 counter=0
 mkdir -p /tmp/exports
 cd /tmp/exports
-docker run -v ${OVPN_DATA}:/etc/openvpn -v /tmp/exports:/exports -it -e DEBUG=1 ghcr.io/eranunplugged/up_openvpn_xor ovpn_getclients ${NUM_USERS}
+docker run -v ${OVPN_DATA}:/etc/openvpn -v /tmp/exports:/exports -i --rm -e DEBUG=1 ghcr.io/eranunplugged/up_openvpn_xor ovpn_getclients ${NUM_USERS}
 #for i in $(seq 1 ${NUM_USERS}); do
 #  echo -n "Creating user${i}"
 #  docker run -v ${OVPN_DATA}:/etc/openvpn --rm protectvpn/ovpn:${OVPN_IMAGE_VERSION} ovpn_getclient user${i} > user${i}.ovpn;
