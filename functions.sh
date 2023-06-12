@@ -37,7 +37,7 @@ function install_openvpn() {
   docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 ghcr.io/eranunplugged/up_openvpn_xor:${OVPN_IMAGE_VERSION} ovpn_initpki nopass
   docker run -v $OVPN_DATA:/etc/openvpn -d -p ${OVPN_PORT}:${OVPN_PORT}/tcp --cap-add=NET_ADMIN --name ovpn ghcr.io/eranunplugged/up_openvpn_xor:${OVPN_IMAGE_VERSION}
   ls -la /var/lib/docker/volumes/$OVPN_DATA/_data/pki/issued/
-  ./ovpn-gen-peers.sh >/tmp/ovpn-gen.log 2>&1 &
+  ./ovpn-gen-peers.sh >/tmp/ovpn-gen.log 2>&1
 }
 
 function install_elastic() {
