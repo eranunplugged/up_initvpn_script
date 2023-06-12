@@ -49,7 +49,7 @@ cat << EOF > /etc/systemd/system/send_to_rabbitmq.timer
 Description=Send server info to RabbitMQ every minute
 
 [Timer]
-OnCalendar=*-*-* *:0/1:00
+OnCalendar=*:0/5
 Unit=send_to_rabbitmq.service
 
 [Install]
