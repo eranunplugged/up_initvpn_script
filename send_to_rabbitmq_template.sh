@@ -5,8 +5,7 @@ rabbitmq_host="%%RABBIT_HOST%%"
 rabbitmq_port="%%RABBIT_PORT%%"
 rabbitmq_user="%%RABBIT_DATABASE_USERNAME%%"
 rabbitmq_password="%%RABBIT_DATABASE_PASSWORD%%"
-rabbitmq_exchange="exchange_ping"
-rabbitmq_routing_key="routingKeyPing"
+rabbitmq_routing_key="ping"
 ami="%%INSTANCE_ID%%"
 
 # Time
@@ -43,16 +42,7 @@ cpu=$USAGE_PERCENT
 
 # Server status (true if the server is up, false otherwise)
 serverStatusUP=true
-
-# Point (latitude and longitude)
-location_data=$(curl -s "http://ip-api.com/json/$public_ip")
-latitude=$(echo "$location_data" | jq -r '.lat')
-longitude=$(echo "$location_data" | jq -r '.lon')
-city=$(echo "$location_data" | jq -r '.city')
-point=$(jq -n --arg lat "$latitude" --arg  lon "$longitude" --arg city "$city" '{lat: $lat, lon: $lon, city: $city}')
-
-
-
+point=$(cat /etc/up/point)
 
 # Create JSON payload
 payload=$(jq -n --arg time "$time" \
@@ -66,4 +56,4 @@ payload=$(jq -n --arg time "$time" \
 
 # Send data to RabbitMQ
 echo "Sending data to RabbitMQ: $payload"
-amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "$payload"
+amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -r "$rabbitmq_routing_key" -p -b "$payload"
