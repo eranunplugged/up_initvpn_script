@@ -5,8 +5,7 @@ rabbitmq_host="%%RABBIT_HOST%%"
 rabbitmq_port="%%RABBIT_PORT%%"
 rabbitmq_user="%%RABBIT_DATABASE_USERNAME%%"
 rabbitmq_password="%%RABBIT_DATABASE_PASSWORD%%"
-rabbitmq_exchange="exchange_ping"
-rabbitmq_routing_key="routingKeyPing"
+rabbitmq_routing_key="ping"
 ami="%%INSTANCE_ID%%"
 
 # Time
@@ -57,4 +56,4 @@ payload=$(jq -n --arg time "$time" \
 
 # Send data to RabbitMQ
 echo "Sending data to RabbitMQ: $payload"
-amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "$payload"
+amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -r "$rabbitmq_routing_key" -p -b "$payload"
