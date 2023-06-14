@@ -56,7 +56,7 @@ rabbitmq_port=$RABBIT_PORT
 rabbitmq_user=$RABBIT_DATABASE_USERNAME
 rabbitmq_password=$RABBIT_DATABASE_PASSWORD
 rabbitmq_exchange="exchange_vpn"
-rabbitmq_routing_key="routingkey"
+rabbitmq_routing_key="vpn"
 
 
 ## Wait for all the files to be generated
@@ -91,7 +91,7 @@ for i in $(seq 1 $NUM_USERS); do
         # Send rabbit_data in batches of 10
         if [ $counter -eq 10 ]; then
             echo "Sending $rabbit_data to rabbitmq"
-            amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "[$rabbit_data]"
+            amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -r "$rabbitmq_routing_key" -p -b "[$rabbit_data]"
             rabbit_data=""
             counter=0
         fi
