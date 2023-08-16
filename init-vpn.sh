@@ -46,6 +46,10 @@ if [ "$INSTANCE_CLOUD" == "AWS" ]; then
 fi
 if [ "$INSTANCE_CLOUD" == "DIGITAL_OCEAN" ]; then
   INSTANCE_ID=$(curl http://169.254.169.254/metadata/v1/id)
+  chage -I -1 -m 0 -M 99999 -E -1 root
+fi
+if [ "$INSTANCE_CLOUD" == "LINODE" ]; then
+  INSTANCE_ID=$(curl http://169.254.169.254/v1/json/linode/id)
 fi
 
 ########For rabbitmq###########
@@ -85,16 +89,16 @@ systemctl enable --now docker
 export OVPN_DATA="ovpn-data"
 export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
 docker volume create --name $OVPN_DATA
-docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm protectvpn/ovpn ovpn_genconfig -u tcp://${PUBLIC_IP}:443
+docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm ghcr.io/eranunplugged/up_openvpn_xor ovpn_genconfig -u tcp://${PUBLIC_IP}:443
 sed -i 's/1194/443/i' /var/lib/docker/volumes/${OVPN_DATA}/_data/openvpn.conf
-docker run -v $OVPN_DATA:/etc/openvpn -d -p 443:443/tcp --cap-add=NET_ADMIN --name ovpn protectvpn/ovpn
+docker run -v $OVPN_DATA:/etc/openvpn -d -p 443:443/tcp --cap-add=NET_ADMIN --name ovpn ghcr.io/eranunplugged/up_openvpn_xor
 ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
-docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 protectvpn/ovpn ovpn_initpki nopass
+docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 ghcr.io/eranunplugged/up_openvpn_xor ovpn_initpki nopass
 ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
 export NUM_USERS=${QUANTITY_GENERATED_VPNS:-10}
-docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 protectvpn/ovpn ovpn_genclientcert "user" nopass $NUM_USERS
+docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 ghcr.io/eranunplugged/up_openvpn_xor ovpn_genclientcert "user" nopass $NUM_USERS
 for i in $(seq 1 $NUM_USERS); do
-  docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -e DEBUG=1 protectvpn/ovpn ovpn_getclient "user$i" > "user$i.ovpn"
+  docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -e DEBUG=1 ghcr.io/eranunplugged/up_openvpn_xor ovpn_getclient "user$i" > "user$i.ovpn"
 done
 docker stop ovpn
 cat << EOF | sudo tee /etc/systemd/system/docker-openvpn@.service
@@ -181,11 +185,6 @@ EOF"
 
 # Reload the systemd configuration, start the timer, and enable it to run at boot
 systemctl daemon-reload
-systemctl start send_to_rabbitmq.timer
-systemctl enable send_to_rabbitmq.timer
-
-# Check the status of the timer
-systemctl status send_to_rabbitmq.timer
 
 
 ##########VPN USER DATA ON TIME to RABBIT
@@ -198,22 +197,6 @@ rabbitmq_exchange="exchange_vpn"
 rabbitmq_routing_key="routingkey"
 
 json_payload='{"typeVpn": "ov"}'
-
-# Iterate through all .ovpn files in the current directory
-# rabbit_data=""
-# for file in *.ovpn; do
-#     if [[ -f $file ]]; then
-#         value=$(base64 -w 0 "$file")
-#         json_payload="{\"typeVpn\":\"ov\",\"ip\":\"${PUBLIC_IP}\",\"vpnConfiguration\":\"${value}\",\"available\":\"true\",\"ami\":\"${INSTANCE_ID}\",\"region\":\"${INSTANCE_REGION}\"}"
-#         if [ "${rabbit_data}" == "" ]; then
-#           rabbit_data=${json_payload}
-#         else
-#           rabbit_data="${rabbit_data},${json_payload}"
-#         fi
-#     fi
-
-# done
-# amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "[$rabbit_data]"
 
 rabbit_data=""
 counter=0
@@ -273,11 +256,12 @@ chmod +x /usr/local/bin/docker-compose
 
 # Create Docker Compose configuration
 mkdir -p ~/wireguard-docker
+docker login ghcr.io -u eranunplugged -p ${GTOKEN}
 cat << EOF > ~/wireguard-docker/docker-compose.yml
 version: "2.1"
 services:
   wireguard:
-    image: lscr.io/linuxserver/wireguard:latest
+    image: ghcr.io/eranunplugged/up_wireguard:latest
     container_name: wireguard
     cap_add:
       - NET_ADMIN
@@ -315,45 +299,6 @@ rabbitmq_user=$RABBIT_DATABASE_USERNAME
 rabbitmq_password=$RABBIT_DATABASE_PASSWORD
 rabbitmq_exchange="exchange_vpn"
 rabbitmq_routing_key="routingkey"
-
-# # Wait for all the files to be generated
-# files_generated=0
-# while [ $files_generated -lt $NUM_USERS ]; do
-#     files_generated=0
-#     for i in $(seq 1 $NUM_USERS); do
-#         client_conf="/etc/wireguard/config/peer${i}/peer${i}.conf"
-#         if [[ -e "$client_conf" ]]; then
-#             files_generated=$((files_generated + 1))
-#         fi
-#     done
-#     sleep 1
-# done
-
-# # Initialize an empty array for storing JSON objects
-# json_payload='{"typeVpn": "wg"}'
-
-# # Iterate through all configuration files
-# rabbit_data=""
-# for i in $(seq 1 $NUM_USERS); do
-#     client_conf="/etc/wireguard/config/peer${i}/peer${i}.conf"
-#     echo "Checking file: $client_conf" # Debug output
-#     if [[ -e "$client_conf" ]]; then
-#         echo "File exists: $client_conf" # Debug output
-#         # Read the contents of the client configuration file and encode it in Base64
-#         value=$(base64 -w 0 < "$client_conf")
-#         json_payload="{\"typeVpn\":\"wg\",\"ip\":\"${PUBLIC_IP}\",\"vpnConfiguration\":\"${value}\",\"available\":\"true\",\"ami\":\"${INSTANCE_ID}\",\"region\":\"${INSTANCE_REGION}\"}"
-#         if [ "${rabbit_data}" == "" ]; then
-#             rabbit_data=${json_payload}
-#         else
-#             rabbit_data="${rabbit_data},${json_payload}"
-#         fi
-#     else
-#         echo "File not found: $client_conf" # Debug output
-#     fi
-# done
-
-# # Send the JSON array to RabbitMQ
-# amqp-publish -u "amqp://${rabbitmq_user}:${rabbitmq_password}@${rabbitmq_host}:${rabbitmq_port}" -e "$rabbitmq_exchange" -r "$rabbitmq_routing_key" -p -b "[$(echo "$rabbit_data")]"
 
 
 # Wait for all the files to be generated
@@ -410,3 +355,9 @@ else
     echo "Failed to send data to RabbitMQ"
     exit 1
 fi
+
+systemctl start send_to_rabbitmq.timer
+systemctl enable send_to_rabbitmq.timer
+
+# Check the status of the timer
+systemctl status send_to_rabbitmq.timer
