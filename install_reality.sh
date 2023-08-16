@@ -51,6 +51,9 @@ rm -f Xray-linux-64.zip
 if [ -z "$REALITY_EXTERNAL_HOST" ]; then
   export REALITY_EXTERNAL_HOST="www.google-analytics.com"
 fi
+if [ -z "$REALITY_EXTERNAL_PORT" ]; then
+  export REALITY_EXTERNAL_PORT=443
+fi
 if [ -z "$REALITY_LISTEN_PORT" ]; then
   export REALITY_LISTEN_PORT="443"
 fi
@@ -98,6 +101,7 @@ perl -i -pe "s/REALITY_PRIVATE_KEY/$X_PRIVATE_KEY/i" config.json
 perl -i -pe "s/REALITY_SHORT_IDS/$SIDS/i" config.json
 perl -i -pe "s/REALITY_CLIENTS/$clients/i" config.json
 perl -i -pe "s/REALITY_EXTERNAL_HOST/$REALITY_EXTERNAL_HOST/i" config.json
+perl -i -pe "s/REALITY_EXTERNAL_PORT/$REALITY_EXTERNAL_PORT/i" config.json
 perl -i -pe "s/REALITY_LISTEN_PORT/$REALITY_LISTEN_PORT/i" config.json
 
 cat config.json

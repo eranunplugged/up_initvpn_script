@@ -26,7 +26,7 @@
         "security": "reality",
         "realitySettings": {
           "show": false,
-          "dest": "REALITY_EXTERNAL_HOST:443",
+          "dest": "REALITY_EXTERNAL_HOST:REALITY_EXTERNAL_PORT",
           "xver": 0,
           "serverNames": [
             "REALITY_EXTERNAL_HOST"
