@@ -13,8 +13,8 @@ curl -s -o /etc/ssh/trusted-user-ca-keys.pem ${UP_VAULT_ADDR}/v1/ssh-client-sign
 echo "TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem" >> /etc/ssh/sshd_config
 systemctl restart sshd
 
-apt update -y
-apt install -y software-properties-common unzip jq amqp-tools default-jre sysstat awscli gpg wireguard-dkms wireguard-tools qrencode -y
+apt update -o DPkg::Lock::Timeout=-1 -y
+apt install -o DPkg::Lock::Timeout=-1 -y software-properties-common unzip jq amqp-tools default-jre sysstat awscli gpg wireguard-dkms wireguard-tools qrencode -y
 
 # Download and install Vault CLI
 export VAULT_VERSION="1.9.3" # Replace with the desired version
@@ -79,26 +79,26 @@ fi
 
 #######INSTALL OPENVPN################
 
-apt-get update
-apt-get install -y apt-transport-https ca-certificates curl software-properties-common dnsutils
+apt-get update -o DPkg::Lock::Timeout=-1
+apt-get install -o DPkg::Lock::Timeout=-1 -y apt-transport-https ca-certificates curl software-properties-common dnsutils
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
+apt-get -o DPkg::Lock::Timeout=-1 update
+apt-get install -o DPkg::Lock::Timeout=-1 -y docker-ce docker-ce-cli containerd.io docker-compose
 systemctl enable --now docker
 export OVPN_DATA="ovpn-data"
 export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
 docker volume create --name $OVPN_DATA
-docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm protectvpn/ovpn ovpn_genconfig -u tcp://${PUBLIC_IP}:443
+docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm ghcr.io/eranunplugged/up_openvpn_xor ovpn_genconfig -u tcp://${PUBLIC_IP}:443
 sed -i 's/1194/443/i' /var/lib/docker/volumes/${OVPN_DATA}/_data/openvpn.conf
-docker run -v $OVPN_DATA:/etc/openvpn -d -p 443:443/tcp --cap-add=NET_ADMIN --name ovpn protectvpn/ovpn
+docker run -v $OVPN_DATA:/etc/openvpn -d -p 443:443/tcp --cap-add=NET_ADMIN --name ovpn ghcr.io/eranunplugged/up_openvpn_xor
 ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
-docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 protectvpn/ovpn ovpn_initpki nopass
+docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 --env OVPN_CN="${PUBLIC_IP}" --env EASYRSA_BATCH=1 ghcr.io/eranunplugged/up_openvpn_xor ovpn_initpki nopass
 ls -la /var/lib/docker/volumes/$OVPN_DATA/_data
 export NUM_USERS=${QUANTITY_GENERATED_VPNS:-10}
-docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 protectvpn/ovpn ovpn_genclientcert "user" nopass $NUM_USERS
+docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -i -e DEBUG=1 ghcr.io/eranunplugged/up_openvpn_xor ovpn_genclientcert "user" nopass $NUM_USERS
 for i in $(seq 1 $NUM_USERS); do
-  docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -e DEBUG=1 protectvpn/ovpn ovpn_getclient "user$i" > "user$i.ovpn"
+  docker run -v $OVPN_DATA:/etc/openvpn --log-driver=none --rm -e DEBUG=1 ghcr.io/eranunplugged/up_openvpn_xor ovpn_getclient "user$i" > "user$i.ovpn"
 done
 docker stop ovpn
 cat << EOF | sudo tee /etc/systemd/system/docker-openvpn@.service
@@ -256,11 +256,12 @@ chmod +x /usr/local/bin/docker-compose
 
 # Create Docker Compose configuration
 mkdir -p ~/wireguard-docker
+docker login ghcr.io -u eranunplugged -p ${GTOKEN}
 cat << EOF > ~/wireguard-docker/docker-compose.yml
 version: "2.1"
 services:
   wireguard:
-    image: lscr.io/linuxserver/wireguard:latest
+    image: ghcr.io/eranunplugged/up_wireguard:latest
     container_name: wireguard
     cap_add:
       - NET_ADMIN
