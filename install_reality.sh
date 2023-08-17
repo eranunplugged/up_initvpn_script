@@ -43,8 +43,8 @@ env | sort
 echo "============================================================================================"
 mkdir /opt/xray
 cd /opt/xray
-sudo apt-get update
-sudo apt-get install unzip
+sudo apt-get update -o DPkg::Lock::Timeout=-1
+sudo apt-get install -o DPkg::Lock::Timeout=-1 unzip
 wget https://github.com/XTLS/Xray-core/releases/download/v1.8.1/Xray-linux-64.zip
 unzip Xray-linux-64.zip
 rm -f Xray-linux-64.zip

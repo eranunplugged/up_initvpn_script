@@ -13,8 +13,8 @@ curl -s -o /etc/ssh/trusted-user-ca-keys.pem ${UP_VAULT_ADDR}/v1/ssh-client-sign
 echo "TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem" >> /etc/ssh/sshd_config
 systemctl restart sshd
 
-apt update -y
-apt install -y software-properties-common unzip jq amqp-tools default-jre sysstat awscli gpg wireguard-dkms wireguard-tools qrencode -y
+apt update -o DPkg::Lock::Timeout=-1 -y
+apt install -o DPkg::Lock::Timeout=-1 -y software-properties-common unzip jq amqp-tools default-jre sysstat awscli gpg wireguard-dkms wireguard-tools qrencode -y
 
 # Download and install Vault CLI
 export VAULT_VERSION="1.9.3" # Replace with the desired version
@@ -79,12 +79,12 @@ fi
 
 #######INSTALL OPENVPN################
 
-apt-get update
-apt-get install -y apt-transport-https ca-certificates curl software-properties-common dnsutils
+apt-get update -o DPkg::Lock::Timeout=-1
+apt-get install -o DPkg::Lock::Timeout=-1 -y apt-transport-https ca-certificates curl software-properties-common dnsutils
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
+apt-get -o DPkg::Lock::Timeout=-1 update
+apt-get install -o DPkg::Lock::Timeout=-1 -y docker-ce docker-ce-cli containerd.io docker-compose
 systemctl enable --now docker
 export OVPN_DATA="ovpn-data"
 export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
