@@ -1,6 +1,6 @@
 
-apt-get update
-apt-get install -y wireguard-dkms wireguard-tools
+apt-get update -o DPkg::Lock::Timeout=-1
+apt-get install -o DPkg::Lock::Timeout=-1 -y wireguard-dkms wireguard-tools
 
 cd /etc/wireguard || exit
 umask 077
