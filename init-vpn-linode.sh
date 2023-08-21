@@ -32,11 +32,13 @@ if [ "$INSTANCE_CLOUD" == "AWS" ]; then
   export INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 elif [ "$INSTANCE_CLOUD" == "DIGITAL_OCEAN" ]; then
   export INSTANCE_ID=$(curl http://169.254.169.254/metadata/v1/id)
-elif [ ! -z $LINODE_ID ]; then
-  export INSTANCE_ID=$LINODE_ID
+elif [ "$INSTANCE_CLOUD" == "LINODE" ]; then
+    export INSTANCE_ID=$LINODE_ID
+elif [ -z "$INSTANCE_ID" ]; then
+  echo "MISSING INSTANCE_ID !!!!!!!!!!!!!!"
 fi
 
-hostnamectl set-hostname ${INSTANCE_ID}
+hostnamectl set-hostname "${INSTANCE_ID}"
 
 # Set output file
 OUTPUT_FILE="./output.txt"
