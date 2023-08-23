@@ -17,10 +17,10 @@ root hard     nofile         655350
 EOF
 
 sysctl -p
-curl -o /etc/systemd/system/xray.service install_reality.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/services/reality/xray.service
-curl -o /etc/systemd/system/realstats.service install_reality.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/services/reality/realstats.service
-curl -o /etc/systemd/system/realstats.timer install_reality.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/services/reality/realstats.timer
-curl -o /usr/local/bin/reality_stats.sh install_reality.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/services/reality/reality_stats.sh
+curl -o /etc/systemd/system/xray.service https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/services/reality/xray.service
+curl -o /etc/systemd/system/realstats.service https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/services/reality/realstats.service
+curl -o /etc/systemd/system/realstats.timer https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/services/reality/realstats.timer
+curl -o /usr/local/bin/reality_stats.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/services/reality/reality_stats.sh
 chmod 755 /usr/local/bin/reality_stats.sh
 
 echo "============================================================================================"
