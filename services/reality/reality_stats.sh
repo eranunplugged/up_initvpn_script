@@ -6,4 +6,5 @@ DL=$($XRAY api stats -name "inbound>>>reality>>>traffic>>>downlink" | jq -r .sta
 UP=$($XRAY api stats -name "inbound>>>reality>>>traffic>>>uplink" | jq -r .stat.value)
 
 OUT=$(echo "{}" | jq --arg dl $DL --arg up $UP --arg hostname $HOSTNAME '. + {reality_downlink: $dl, reality_uplink: $up, host: $hostname}')
-logger "$OUT"
+# shellcheck disable=SC2086
+logger $OUT
