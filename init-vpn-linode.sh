@@ -34,6 +34,8 @@ elif [ "$INSTANCE_CLOUD" == "DIGITAL_OCEAN" ]; then
   export INSTANCE_ID=$(curl http://169.254.169.254/metadata/v1/id)
 elif [ "$INSTANCE_CLOUD" == "LINODE" ]; then
     export INSTANCE_ID=$LINODE_ID
+elif [ "$INSTANCE_CLOUD" == "HETZNER" ]; then
+    export INSTANCE_ID=$(curl http://169.254.169.254/hetzner/v1/metadata/instance-id)
 elif [ -z "$INSTANCE_ID" ]; then
   echo "MISSING INSTANCE_ID !!!!!!!!!!!!!!"
 fi
