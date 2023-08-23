@@ -13,12 +13,18 @@
         "handshake": 3,
         "connIdle": 180
       }
+    },
+    "system": {
+      "statsInboundUplink": true,
+      "statsInboundDownlink": true,
+      "statsOutboundUplink": true,
+      "statsOutboundDownlink": true
     }
   },
   "inbounds": [
     {
       "listen": "127.0.0.1",
-      "port": 10085,
+      "port": 8080,
       "protocol": "dokodemo-door",
       "settings": {
         "address": "127.0.0.1"
