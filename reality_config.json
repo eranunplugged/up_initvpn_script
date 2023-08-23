@@ -24,7 +24,7 @@
   "inbounds": [
     {
       "listen": "127.0.0.1",
-      "port": 8080,
+      "port": 8080  ,
       "protocol": "dokodemo-door",
       "settings": {
         "address": "127.0.0.1"
@@ -33,6 +33,7 @@
     },
     {
       "listen": "0.0.0.0",
+      "tag": "reality",
       "port": REALITY_LISTEN_PORT,
       "protocol": "vless",
       "settings": {
