@@ -17,30 +17,16 @@ root hard     nofile         655350
 EOF
 
 sysctl -p
+curl -o /etc/systemd/system/xray.service https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/services/reality/xray.service
+curl -o /etc/systemd/system/realstats.service https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/services/reality/realstats.service
+curl -o /etc/systemd/system/realstats.timer https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/services/reality/realstats.timer
+curl -o /usr/local/bin/reality_stats.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/services/reality/reality_stats.sh
+chmod 755 /usr/local/bin/reality_stats.sh
 
-cat << EOF > /etc/systemd/system/xray.service
-[Unit]
-Description=XTLS Xray-Core a VMESS/VLESS Server
-After=network.target nss-lookup.target
-[Service]
-# Change to your username <---
-User=root
-Group=root
-CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
-AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
-NoNewPrivileges=true
-ExecStart=/opt/xray/xray run -config /opt/xray/config.json
-Restart=on-failure
-RestartPreventExitStatus=23
-StandardOutput=journal
-LimitNPROC=100000
-LimitNOFILE=1000000
-[Install]
-WantedBy=multi-user.target
-EOF
 echo "============================================================================================"
 env | sort
 echo "============================================================================================"
+
 mkdir /opt/xray
 cd /opt/xray
 sudo apt-get update -o DPkg::Lock::Timeout=-1
@@ -105,5 +91,6 @@ perl -i -pe "s/REALITY_EXTERNAL_PORT/$REALITY_EXTERNAL_PORT/i" config.json
 perl -i -pe "s/REALITY_LISTEN_PORT/$REALITY_LISTEN_PORT/i" config.json
 
 cat config.json
-systemctl daemon-reload && sudo systemctl enable --now xray
+systemctl daemon-reload
+systemctl enable --now xray realstats.timer
 
