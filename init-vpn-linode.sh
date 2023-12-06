@@ -22,9 +22,9 @@ export OVPN_IMAGE_VERSION=latest
 curl -o functions.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/functions.sh
 . ./functions.sh
 
-install_up_ssh_certificate
-install_docker
-install_vault
+[ -f /etc/ssh/trusted-user-ca-keys.pem ] || install_up_ssh_certificate
+docker version || install_docker
+vault version || install_vault
 apt install -o DPkg::Lock::Timeout=-1 -y software-properties-common unzip jq amqp-tools default-jre sysstat awscli gpg  qrencode apt-transport-https ca-certificates curl software-properties-common dnsutils
 # shellcheck disable=SC2155
 export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
