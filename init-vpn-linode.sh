@@ -37,13 +37,7 @@ elif [ "$INSTANCE_CLOUD" == "LINODE" ]; then
 elif [ "$INSTANCE_CLOUD" == "HETZNER" ]; then
     export INSTANCE_ID=$(curl http://169.254.169.254/hetzner/v1/metadata/instance-id)
 elif [ "$INSTANCE_CLOUD" == "LIGHTNODE" ]; then
-    if [ -f /etc/machine-id ]; then
-        export INSTANCE_ID=$(cat /etc/machine-id)
-    elif [ -f /sys/class/dmi/id/product_uuid ]; then
-        export INSTANCE_ID=$(cat /sys/class/dmi/id/product_uuid)
-    else
-        export INSTANCE_ID=$(curl -s ifconfig.me)
-    fi 
+    export INSTANCE_ID=$(cat /etc/machine-id)
 elif [ -z "$INSTANCE_ID" ]; then
   echo "MISSING INSTANCE_ID !!!!!!!!!!!!!!"
 fi
