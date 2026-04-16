@@ -11,7 +11,7 @@ function install_docker {
 
 function install_vault() {
   export VAULT_VERSION="1.9.3" # Replace with the desired version
-  docker run -d -t --name=vault vault:${VAULT_VERSION}so is
+  docker run -d -t --name=vault vault:${VAULT_VERSION}
   docker cp vault:/bin/vault /bin/vault
   docker rm -f vault
 }
