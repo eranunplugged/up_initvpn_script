@@ -8,7 +8,8 @@ export ENDPOINT=$(dig +short myip.opendns.com @resolver1.opendns.com)
 export SERVER_IP="10.0.0.1"
 export WAN_INTERFACE_NAME=$(ip r | grep default | awk {'print $5'})
 # Update package list and install required dependencies
-
+# shellcheck disable=SC2086
+[ -z ${WG_IMAGE_VERSION} ] && export WIREGUARD_IMAGE_VERSION=latest
 # Install Docker Compose
 curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
@@ -19,7 +20,7 @@ cat << EOF > ~/wireguard-docker/docker-compose.yml
 version: "2.1"
 services:
   wireguard:
-    image: ghcr.io/eranunplugged/up_wireguard:latest
+    image: ghcr.io/eranunplugged/up_wireguard:${WG_IMAGE_VERSION}
     container_name: wireguard
     cap_add:
       - NET_ADMIN
@@ -47,7 +48,7 @@ services:
 EOF
 
 # Run Docker Compose
-cd ~/wireguard-docker
+cd ~/wireguard-docker || exit
 docker-compose up -d
 
 # Initialize JSON payload with typeVpn key-value pair
