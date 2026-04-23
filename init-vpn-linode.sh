@@ -7,15 +7,20 @@
 # <UDF name="VPN_TYPES" label=""  />
 # This scripts is executed first
 
+# Allow different environments to use different branches.
+[ -z ${BRANCH} ] && export BRANCH=main
+
+SCRIPT_VERSION="1.0.0"
+echo "=== up_initvpn_script version=${SCRIPT_VERSION} branch=${BRANCH} environment=${ENVIRONMENT} started=$(date -Is) ==="
+
+set -x
+
 # Disable password expiration for root user
 passwd -u root
 ROOT_PASSWD=$(date | md5sum | cut -c1-8)
 echo "root:$ROOT_PASSWD" | chpasswd
 chage -I -1 -m 0 -M 99999 -E -1 root
 
-# Allow different environments to use different branches.
-[ -z ${BRANCH} ] && export BRANCH=main
-set -x
 # Will be replaced by vault
 export OVPN_IMAGE_VERSION=latest
 #Main install script
