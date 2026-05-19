@@ -30,7 +30,10 @@ function install_up_ssh_certificate() {
   echo "# Installing ssh certificate"
   curl -s -o /etc/ssh/trusted-user-ca-keys.pem ${UP_VAULT_ADDR}/v1/ssh-client-signer2/public_key
   echo "TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem" >> /etc/ssh/sshd_config
-  systemctl restart sshd
+  # On Ubuntu 24.04 the systemd unit is `ssh.service` (socket-activated); the
+  # `sshd.service` alias from 20.04 is gone, so `restart sshd` exits non-zero
+  # and the new TrustedUserCAKeys line is never reloaded.
+  systemctl restart ssh
 }
 function vpn_protocol_enables() {
   echo ${VPN_TYPES} | grep ${1} >/dev/null 2>&1
