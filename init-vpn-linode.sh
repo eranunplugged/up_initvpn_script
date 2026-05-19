@@ -18,8 +18,17 @@ chage -I -1 -m 0 -M 99999 -E -1 root
 set -x
 # Will be replaced by vault
 export OVPN_IMAGE_VERSION=latest
+
+# Pick OS-specific helper family. 20.04 = empty suffix (legacy path, intact); 24.04 = -2404.
+SCRIPT_SUFFIX=""
+if [ -r /etc/os-release ]; then
+  . /etc/os-release
+  [ "${VERSION_ID}" = "24.04" ] && SCRIPT_SUFFIX="-2404"
+fi
+export SCRIPT_SUFFIX
+
 #Main install script
-curl -o functions.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/functions.sh
+curl -o functions.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/functions${SCRIPT_SUFFIX}.sh
 . ./functions.sh
 
 [ -f /etc/ssh/trusted-user-ca-keys.pem ] || install_up_ssh_certificate
