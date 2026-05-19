@@ -1,3 +1,14 @@
+function install_base_packages {
+  # awscli was removed from Ubuntu 24.04 repos; install AWS CLI v2 from the official bundle.
+  DEBIAN_FRONTEND=noninteractive apt install -o DPkg::Lock::Timeout=-1 -y software-properties-common unzip jq amqp-tools default-jre sysstat gpg qrencode apt-transport-https ca-certificates curl dnsutils
+  if ! command -v aws >/dev/null 2>&1; then
+    curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o /tmp/awscliv2.zip
+    unzip -q /tmp/awscliv2.zip -d /tmp
+    /tmp/aws/install
+    rm -rf /tmp/aws /tmp/awscliv2.zip
+  fi
+}
+
 function install_docker {
   install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
