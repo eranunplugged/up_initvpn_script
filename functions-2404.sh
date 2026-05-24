@@ -61,6 +61,12 @@ function install_elastic() {
     [ -z "${ES_PREFIX}" ] && echo "Need to set elastic prefix" && return
     [ -z "${ES_CLOUD_URL}" ] && echo "Need to set elastic cloud url" && return
     [ -z "${ES_ENROLLMENT_TOKEN}" ] && echo "Need to set elastic token" && return
+    # Vault ships ES_PREFIX as elastic-agent-<ver>-linux-x86_64; rewrite for
+    # aarch64 hosts (e.g. OCI Ampere shapes) so we don't tar-extract an x86
+    # binary that then dies with "cannot execute binary file: Exec format error".
+    if [ "$(uname -m)" = "aarch64" ]; then
+      ES_PREFIX=${ES_PREFIX//x86_64/arm64}
+    fi
     # shellcheck disable=SC2086
     curl -L -O https://artifacts.elastic.co/downloads/beats/elastic-agent/${ES_PREFIX}.tar.gz
     # shellcheck disable=SC2086
