@@ -14,8 +14,16 @@ export WAN_INTERFACE_NAME=$(ip r | grep default | awk {'print $5'})
 # Update package list and install required dependencies
 # shellcheck disable=SC2086
 [ -z ${WG_IMAGE_VERSION} ] && export WG_IMAGE_VERSION=latest
-# Install Docker Compose
-curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# Docker Compose v2 plugin is installed by functions-2404.sh (apt: docker-compose-plugin),
+# so it's available as `docker compose`. The legacy v1 download
+# (github.com/docker/compose/releases/download/1.29.2/docker-compose-$os-$arch)
+# never published an aarch64 build, so on OCI Ampere shapes it 404s and writes
+# the string "Not Found" into the binary path. Install a tiny shim instead so
+# the rest of this script's `docker-compose ...` calls dispatch to the plugin.
+cat > /usr/local/bin/docker-compose <<'WRAPPER'
+#!/bin/sh
+exec docker compose "$@"
+WRAPPER
 chmod +x /usr/local/bin/docker-compose
 
 # Create Docker Compose configuration
