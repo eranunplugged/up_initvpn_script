@@ -1,12 +1,21 @@
 function install_base_packages {
-  apt install -o DPkg::Lock::Timeout=-1 -y software-properties-common unzip jq amqp-tools default-jre sysstat awscli gpg  qrencode apt-transport-https ca-certificates curl software-properties-common dnsutils
+  # awscli was removed from Ubuntu 24.04 repos; install AWS CLI v2 from the official bundle.
+  DEBIAN_FRONTEND=noninteractive apt install -o DPkg::Lock::Timeout=-1 -y software-properties-common unzip jq amqp-tools default-jre sysstat gpg qrencode apt-transport-https ca-certificates curl dnsutils
+  if ! command -v aws >/dev/null 2>&1; then
+    curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o /tmp/awscliv2.zip
+    unzip -q /tmp/awscliv2.zip -d /tmp
+    /tmp/aws/install
+    rm -rf /tmp/aws /tmp/awscliv2.zip
+  fi
 }
 
 function install_docker {
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-  add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-  apt-get update
-  apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
+  install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  chmod a+r /etc/apt/keyrings/docker.asc
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" > /etc/apt/sources.list.d/docker.list
+  apt-get update -o DPkg::Lock::Timeout=-1
+  DEBIAN_FRONTEND=noninteractive apt-get install -o DPkg::Lock::Timeout=-1 -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
   systemctl enable --now docker
 }
 
@@ -21,7 +30,10 @@ function install_up_ssh_certificate() {
   echo "# Installing ssh certificate"
   curl -s -o /etc/ssh/trusted-user-ca-keys.pem ${UP_VAULT_ADDR}/v1/ssh-client-signer2/public_key
   echo "TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem" >> /etc/ssh/sshd_config
-  systemctl restart sshd
+  # On Ubuntu 24.04 the systemd unit is `ssh.service` (socket-activated); the
+  # `sshd.service` alias from 20.04 is gone, so `restart sshd` exits non-zero
+  # and the new TrustedUserCAKeys line is never reloaded.
+  systemctl restart ssh
 }
 function vpn_protocol_enables() {
   echo ${VPN_TYPES} | grep ${1} >/dev/null 2>&1
@@ -64,7 +76,7 @@ function install_elastic() {
 function install_wireguard() {
   $(vpn_protocol_enables WIREGUARD) || return
   # shellcheck disable=SC2086
-  curl -o install_wireguard.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/install_wireguard.sh
+  curl -o install_wireguard.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/install_wireguard-2404.sh
   chmod 777 install_wireguard.sh
   ./install_wireguard.sh
 }
@@ -73,7 +85,7 @@ function install_reality(){
   $(vpn_protocol_enables REALITY) || return
   [ -n "$DISABLE_REALITY" ] && return
   # shellcheck disable=SC2086
-  curl -o install_reality.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/install_reality.sh
+  curl -o install_reality.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/install_reality-2404.sh
   chmod 777 install_reality.sh
   ./install_reality.sh
 }

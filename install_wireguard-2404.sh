@@ -1,6 +1,7 @@
 
 apt-get update -o DPkg::Lock::Timeout=-1
-apt-get install -o DPkg::Lock::Timeout=-1 -y wireguard-dkms wireguard-tools
+# wireguard-dkms removed on Ubuntu 24.04 — kernel ships WireGuard natively.
+DEBIAN_FRONTEND=noninteractive apt-get install -o DPkg::Lock::Timeout=-1 -y wireguard-tools
 
 cd /etc/wireguard || exit
 umask 077

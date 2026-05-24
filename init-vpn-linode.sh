@@ -18,14 +18,23 @@ chage -I -1 -m 0 -M 99999 -E -1 root
 set -x
 # Will be replaced by vault
 export OVPN_IMAGE_VERSION=latest
+
+# Pick OS-specific helper family. 20.04 = empty suffix (legacy path, intact); 24.04 = -2404.
+SCRIPT_SUFFIX=""
+if [ -r /etc/os-release ]; then
+  . /etc/os-release
+  [ "${VERSION_ID}" = "24.04" ] && SCRIPT_SUFFIX="-2404"
+fi
+export SCRIPT_SUFFIX
+
 #Main install script
-curl -o functions.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/functions.sh
+curl -o functions.sh https://raw.githubusercontent.com/eranunplugged/up_initvpn_script/${BRANCH}/functions${SCRIPT_SUFFIX}.sh
 . ./functions.sh
 
 [ -f /etc/ssh/trusted-user-ca-keys.pem ] || install_up_ssh_certificate
 docker version || install_docker
 vault version || install_vault
-apt install -o DPkg::Lock::Timeout=-1 -y software-properties-common unzip jq amqp-tools default-jre sysstat awscli gpg  qrencode apt-transport-https ca-certificates curl software-properties-common dnsutils
+install_base_packages
 # shellcheck disable=SC2155
 export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
 if [ "$INSTANCE_CLOUD" == "AWS" ]; then
