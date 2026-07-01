@@ -46,9 +46,9 @@ fi
 X25519=$(./xray x25519)
 echo "X25519:"
 echo "$X25519"
-X_PRIVATE_KEY=$(echo "$X25519" | head -1 | cut -d " " -f 3)
+X_PRIVATE_KEY=$(echo "$X25519" | awk '/PrivateKey:/ {print $2}')
 echo "X_PRIVATE_KEY: $X_PRIVATE_KEY"
-X_PUBLIC_KEY=$(echo "$X25519" | tail -1 | cut -d " " -f 3)
+X_PUBLIC_KEY=$(echo "$X25519" | awk '/\(PublicKey\)/ {print $NF}')
 RABBIT_URL="amqp://${RABBIT_DATABASE_USERNAME}:${RABBIT_DATABASE_PASSWORD}@${RABBIT_HOST}:${RABBIT_PORT}"
 echo "Rabbit url: ${RABBIT_URL}"
 uuid=$(./xray uuid -i Secret)
