@@ -56,14 +56,10 @@ hostnamectl set-hostname "${INSTANCE_ID}"
 # Set output file
 OUTPUT_FILE="./output.txt"
 
-# Read AWS credentials from Vault and store them as environment variables
-AWS_CREDS=$(vault read -format=json aws/creds/vpn_server | jq -r '.data | to_entries | map("\(.key)=\(.value)") | join(" ")')
-echo "$AWS_CREDS" > $OUTPUT_FILE
-
 # Read VPN server configuration data from Vault and store them as environment variables
 # shellcheck disable=SC2086
 VPN_SERVER_CONFIG=$(vault read -format=json /kv/data/vpn-server/${ENVIRONMENT} | jq -r '.data.data | to_entries | map("\(.key)=\(.value)") | join(" ")')
-echo "$VPN_SERVER_CONFIG" >> $OUTPUT_FILE
+echo "$VPN_SERVER_CONFIG" > $OUTPUT_FILE
 
 # Source the output file to set environment variables
 set -a
