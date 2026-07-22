@@ -31,7 +31,7 @@ mkdir /opt/xray
 cd /opt/xray
 sudo apt-get update -o DPkg::Lock::Timeout=-1
 sudo apt-get install -o DPkg::Lock::Timeout=-1 unzip
-wget https://github.com/XTLS/Xray-core/releases/download/v1.8.4/Xray-linux-64.zip
+wget https://github.com/XTLS/Xray-core/releases/download/v26.6.22/Xray-linux-64.zip
 unzip Xray-linux-64.zip
 rm -f Xray-linux-64.zip
 if [ -z "$REALITY_EXTERNAL_HOST" ]; then
@@ -46,9 +46,9 @@ fi
 X25519=$(./xray x25519)
 echo "X25519:"
 echo "$X25519"
-X_PRIVATE_KEY=$(echo "$X25519" | head -1 | cut -d " " -f 3)
+X_PRIVATE_KEY=$(echo "$X25519" | awk '/PrivateKey:/ {print $2}')
 echo "X_PRIVATE_KEY: $X_PRIVATE_KEY"
-X_PUBLIC_KEY=$(echo "$X25519" | tail -1 | cut -d " " -f 3)
+X_PUBLIC_KEY=$(echo "$X25519" | awk '/\(PublicKey\)/ {print $NF}')
 RABBIT_URL="amqp://${RABBIT_DATABASE_USERNAME}:${RABBIT_DATABASE_PASSWORD}@${RABBIT_HOST}:${RABBIT_PORT}"
 echo "Rabbit url: ${RABBIT_URL}"
 uuid=$(./xray uuid -i Secret)
