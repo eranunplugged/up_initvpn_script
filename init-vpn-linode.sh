@@ -38,7 +38,20 @@ install_base_packages
 # shellcheck disable=SC2155
 export PUBLIC_IP=$(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | grep -oP '(?<=").*(?=")')
 if [ "$INSTANCE_CLOUD" == "AWS" ]; then
-  export INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+  # Canonical's Ubuntu AMIs carry ImdsSupport=v2.0, so instances launched from them
+  # get HttpTokens=required and an unauthenticated IMDSv1 GET returns 401 -- leaving
+  # INSTANCE_ID empty, the hostname blank, and the node registering itself against an
+  # empty id (verified on stage sa-east-1, 2026-09-07). The old custom VPNSERVER_V7
+  # AMI has no ImdsSupport attribute, so IMDSv1 was permitted and this never showed.
+  # Ask for a token first; fall back to the plain call for images where v1 still works.
+  IMDS_TOKEN=$(curl -s -f -X PUT "http://169.254.169.254/latest/api/token" \
+      -H "X-aws-ec2-metadata-token-ttl-seconds: 300" 2>/dev/null || true)
+  if [ -n "$IMDS_TOKEN" ]; then
+    export INSTANCE_ID=$(curl -s -f -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" \
+        http://169.254.169.254/latest/meta-data/instance-id)
+  else
+    export INSTANCE_ID=$(curl -s -f http://169.254.169.254/latest/meta-data/instance-id)
+  fi
 elif [ "$INSTANCE_CLOUD" == "DIGITAL_OCEAN" ]; then
   export INSTANCE_ID=$(curl http://169.254.169.254/metadata/v1/id)
 elif [ "$INSTANCE_CLOUD" == "LINODE" ]; then
@@ -49,8 +62,13 @@ elif [ "$INSTANCE_CLOUD" == "LIGHTNODE" ]; then
     export INSTANCE_ID=$(cat /etc/machine-id)
 elif [ "$INSTANCE_CLOUD" == "ORACLE" ]; then
     export INSTANCE_ID=$(curl -s -H "Authorization: Bearer Oracle" http://169.254.169.254/opc/v2/instance/id)
-elif [ -z "$INSTANCE_ID" ]; then
-  echo "MISSING INSTANCE_ID !!!!!!!!!!!!!!"
+fi
+
+# Checked unconditionally: the old `elif [ -z "$INSTANCE_ID" ]` could only fire when no
+# cloud branch matched at all, so an empty id from a branch that *did* match passed
+# silently -- which is exactly how the IMDSv2 failure above went unnoticed.
+if [ -z "$INSTANCE_ID" ]; then
+  echo "MISSING INSTANCE_ID !!!!!!!!!!!!!! cloud=${INSTANCE_CLOUD}"
 fi
 
 hostnamectl set-hostname "${INSTANCE_ID}"
