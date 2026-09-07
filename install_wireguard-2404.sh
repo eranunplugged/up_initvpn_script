@@ -1,7 +1,13 @@
 
-apt-get update -o DPkg::Lock::Timeout=-1
+# Runs as its own process, so it does not inherit the parent's shell functions.
+# functions.sh was downloaded to this directory by init-vpn-linode.sh; source it
+# for apt_wait (see the comment there for why plain apt-get races at first boot).
+# shellcheck source=/dev/null
+[ -r ./functions.sh ] && . ./functions.sh
+
+apt_wait update
 # wireguard-dkms removed on Ubuntu 24.04 — kernel ships WireGuard natively.
-DEBIAN_FRONTEND=noninteractive apt-get install -o DPkg::Lock::Timeout=-1 -y wireguard-tools
+apt_wait install wireguard-tools
 
 cd /etc/wireguard || exit
 umask 077

@@ -70,6 +70,11 @@ set +a
 export NUM_USERS=${QUANTITY_GENERATED_VPNS:-10}
 #####################################
 docker login ghcr.io -u eranunplugged -p ${GTOKEN}
+# Open 51820/udp and 443/tcp on the host firewall before any VPN software is
+# installed. Needed on OCI, whose Ubuntu images REJECT everything but 22/tcp;
+# a no-op on the other clouds. Runs after the Vault config is sourced so a
+# non-default OVPN_PORT is covered too.
+open_vpn_firewall_ports
 install_elastic
 install_openvpn
 install_wireguard
