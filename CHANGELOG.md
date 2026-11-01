@@ -1,5 +1,9 @@
 # Changelog
 
+### [Unreleased] - 2026-11-01
+- UNP-8001: fix `apt_wait` never running apt-get. It treated `unattended-upgrades.service` being active as "apt busy", but that unit only runs `unattended-upgrade-shutdown --wait-for-signal` and is active for the machine's whole life, so all 60 attempts waited and the helper gave up after 10 minutes — Docker never installed (OCI il-jerusalem-1, dev + stage). Now waits on `apt-daily`, `apt-daily-upgrade` and an actual `/usr/bin/unattended-upgrade` process.
+- UNP-8001: fetch the Vault config (`kv/vpn-server/<env>`) with curl as the first step of `init-vpn-linode.sh`, before any package work and before `set -x`, into a root-only `/root/vpn-server-config.json`; parse it later with the same jq expression. The token vpn-admin passes has a ~5 minute TTL and the old read only happened after Docker/Vault/base packages were installed, which slow first boots (OCI, 1-vCPU droplets) exceeded. A failed fetch now aborts with a clear `FATAL` instead of continuing with an empty config.
+
 ### [Unreleased] - 2026-09-07
 - UNP-8001: add the `ORACLE` branch to the `INSTANCE_CLOUD` dispatcher in `init-vpn-linode.sh` (reads the instance OCID from `169.254.169.254/opc/v2/instance/id` with the `Authorization: Bearer Oracle` header). Without it an OCI node prints `MISSING INSTANCE_ID`, gets an empty hostname and never reports peers.
 - UNP-8001: route every apt call through a new `apt_wait` helper in `functions-2404.sh`. `-o DPkg::Lock::Timeout` only covers the dpkg locks; `apt-get update` takes `/var/lib/apt/lists/lock` via `pkgAcquire::GetLock()`, which fails immediately with no timeout option. `apt-daily.timer` is `Persistent=true` and fires at first boot, so the first apt call died, Docker and Vault never installed, and the script looped on "waiting for configurations".

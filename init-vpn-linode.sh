@@ -15,6 +15,24 @@ chage -I -1 -m 0 -M 99999 -E -1 root
 
 # Allow different environments to use different branches.
 [ -z ${BRANCH} ] && export BRANCH=main
+
+# Fetch the VPN server config from Vault FIRST, before any package work.
+# vpn-admin hands us a VAULT_TOKEN with a ~5 minute TTL; the old flow only read
+# Vault after install_docker / install_vault / install_base_packages, and on
+# slow first boots (OCI: apt-daily at boot, 1-vCPU droplets) that took longer
+# than the TTL, so the read failed and the node never registered. curl is in
+# every base image, so no vault CLI or jq is needed here: store the raw JSON
+# root-only and parse it later, once jq is installed. Done before `set -x` so
+# the token header is never echoed into the cloud-init / StackScript log.
+VPN_SERVER_CONFIG_JSON=/root/vpn-server-config.json
+if ! ( umask 077; curl -sS --fail --retry 5 --retry-delay 3 --retry-connrefused --max-time 20 \
+         -H "X-Vault-Token: ${VAULT_TOKEN}" \
+         -o "${VPN_SERVER_CONFIG_JSON}" \
+         "${VAULT_ADDR}/v1/kv/data/vpn-server/${ENVIRONMENT}" ); then
+  echo "FATAL: could not read kv/vpn-server/${ENVIRONMENT} from ${VAULT_ADDR} -- aborting"
+  exit 1
+fi
+echo "Vault config fetched for environment ${ENVIRONMENT}"
 set -x
 # Will be replaced by vault
 export OVPN_IMAGE_VERSION=latest
@@ -76,9 +94,9 @@ hostnamectl set-hostname "${INSTANCE_ID}"
 # Set output file
 OUTPUT_FILE="./output.txt"
 
-# Read VPN server configuration data from Vault and store them as environment variables
-# shellcheck disable=SC2086
-VPN_SERVER_CONFIG=$(vault read -format=json /kv/data/vpn-server/${ENVIRONMENT} | jq -r '.data.data | to_entries | map("\(.key)=\(.value)") | join(" ")')
+# Turn the Vault config fetched at the top of this script into env vars
+# (same jq expression as the old `vault read` pipeline; KV v2 nests under .data.data).
+VPN_SERVER_CONFIG=$(jq -r '.data.data | to_entries | map("\(.key)=\(.value)") | join(" ")' "${VPN_SERVER_CONFIG_JSON}")
 echo "$VPN_SERVER_CONFIG" > $OUTPUT_FILE
 
 # Source the output file to set environment variables

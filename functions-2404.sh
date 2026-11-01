@@ -14,12 +14,21 @@
 # VPN node, and killing a running dpkg can leave packages half-configured.
 # Correctness here comes from the retry, so this works even where `fuser` is
 # absent. Budget: up to 60 attempts x 10 s = 10 minutes.
+#
+# Do NOT test `systemctl is-active unattended-upgrades.service`: that unit only
+# runs /usr/share/unattended-upgrades/unattended-upgrade-shutdown
+# --wait-for-signal, is active for the whole life of the machine and holds no
+# apt lock -- treating it as "busy" made every attempt wait and the function
+# give up after 10 minutes without ever running apt-get (seen on OCI
+# il-jerusalem-1, dev + stage, 2026-11-01). A real upgrade run is the
+# /usr/bin/unattended-upgrade process, which the pgrep below matches and the
+# -shutdown helper (different path) does not.
 function apt_wait() {
   local i
   for i in $(seq 1 60); do
     if systemctl is-active --quiet apt-daily.service \
        || systemctl is-active --quiet apt-daily-upgrade.service \
-       || systemctl is-active --quiet unattended-upgrades.service; then
+       || pgrep -f '/usr/bin/unattended-upgrade( |$)' >/dev/null; then
       echo "apt_wait: a distro apt job is running, waiting (${i}/60)"
       sleep 10
       continue
