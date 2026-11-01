@@ -1,7 +1,13 @@
 
-apt-get update -o DPkg::Lock::Timeout=-1
+# Runs as its own process, so it does not inherit the parent's shell functions.
+# functions.sh was downloaded to this directory by init-vpn-linode.sh; source it
+# for apt_wait (see the comment there for why plain apt-get races at first boot).
+# shellcheck source=/dev/null
+[ -r ./functions.sh ] && . ./functions.sh
+
+apt_wait update
 # wireguard-dkms removed on Ubuntu 24.04 — kernel ships WireGuard natively.
-DEBIAN_FRONTEND=noninteractive apt-get install -o DPkg::Lock::Timeout=-1 -y wireguard-tools
+apt_wait install wireguard-tools
 
 cd /etc/wireguard || exit
 umask 077
@@ -14,8 +20,16 @@ export WAN_INTERFACE_NAME=$(ip r | grep default | awk {'print $5'})
 # Update package list and install required dependencies
 # shellcheck disable=SC2086
 [ -z ${WG_IMAGE_VERSION} ] && export WG_IMAGE_VERSION=latest
-# Install Docker Compose
-curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# Docker Compose v2 plugin is installed by functions-2404.sh (apt: docker-compose-plugin),
+# so it's available as `docker compose`. The legacy v1 download
+# (github.com/docker/compose/releases/download/1.29.2/docker-compose-$os-$arch)
+# never published an aarch64 build, so on OCI Ampere shapes it 404s and writes
+# the string "Not Found" into the binary path. Install a tiny shim instead so
+# the rest of this script's `docker-compose ...` calls dispatch to the plugin.
+cat > /usr/local/bin/docker-compose <<'WRAPPER'
+#!/bin/sh
+exec docker compose "$@"
+WRAPPER
 chmod +x /usr/local/bin/docker-compose
 
 # Create Docker Compose configuration

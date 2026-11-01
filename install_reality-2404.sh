@@ -1,4 +1,8 @@
 #!/bin/bash
+# Runs as its own process; source functions.sh (downloaded to this directory by
+# init-vpn-linode.sh) for apt_wait. Done before any cd so the relative path holds.
+# shellcheck source=/dev/null
+[ -r ./functions.sh ] && . ./functions.sh
 
 cat << EOF >> /etc/sysctl.conf
 net.ipv4.tcp_keepalive_time = 90
@@ -29,8 +33,8 @@ echo "==========================================================================
 
 mkdir /opt/xray
 cd /opt/xray
-sudo apt-get update -o DPkg::Lock::Timeout=-1
-sudo apt-get install -o DPkg::Lock::Timeout=-1 unzip
+apt_wait update
+apt_wait install unzip
 wget https://github.com/XTLS/Xray-core/releases/download/v26.6.22/Xray-linux-64.zip
 unzip Xray-linux-64.zip
 rm -f Xray-linux-64.zip
