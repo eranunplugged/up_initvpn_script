@@ -24,9 +24,14 @@ chage -I -1 -m 0 -M 99999 -E -1 root
 # every base image, so no vault CLI or jq is needed here: store the raw JSON
 # root-only and parse it later, once jq is installed. Done before `set -x` so
 # the token header is never echoed into the cloud-init / StackScript log.
+# The token header is fed to curl on stdin (-H @-) rather than as an argument,
+# so it never shows up in `ps` either. --retry covers timeouts and 5xx (e.g. a
+# sealed Vault) but deliberately not 403/404: an expired or wrong token should
+# fail fast, not burn the remaining TTL.
 VPN_SERVER_CONFIG_JSON=/root/vpn-server-config.json
-if ! ( umask 077; curl -sS --fail --retry 5 --retry-delay 3 --retry-connrefused --max-time 20 \
-         -H "X-Vault-Token: ${VAULT_TOKEN}" \
+if ! ( umask 077; printf 'X-Vault-Token: %s\n' "${VAULT_TOKEN}" | \
+       curl -sS --fail --retry 5 --retry-delay 3 --retry-connrefused --max-time 20 \
+         -H @- \
          -o "${VPN_SERVER_CONFIG_JSON}" \
          "${VAULT_ADDR}/v1/kv/data/vpn-server/${ENVIRONMENT}" ); then
   echo "FATAL: could not read kv/vpn-server/${ENVIRONMENT} from ${VAULT_ADDR} -- aborting"
