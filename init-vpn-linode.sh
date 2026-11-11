@@ -85,6 +85,8 @@ elif [ "$INSTANCE_CLOUD" == "LIGHTNODE" ]; then
     export INSTANCE_ID=$(cat /etc/machine-id)
 elif [ "$INSTANCE_CLOUD" == "ORACLE" ]; then
     export INSTANCE_ID=$(curl -s -H "Authorization: Bearer Oracle" http://169.254.169.254/opc/v2/instance/id)
+    # vpn-admin's name for the instance, e.g. VPN44-dev-us-ashburn-1
+    VPN_NAME=$(curl -s -f -H "Authorization: Bearer Oracle" http://169.254.169.254/opc/v2/instance/displayName)
 fi
 
 # Checked unconditionally: the old `elif [ -z "$INSTANCE_ID" ]` could only fire when no
@@ -94,7 +96,9 @@ if [ -z "$INSTANCE_ID" ]; then
   echo "MISSING INSTANCE_ID !!!!!!!!!!!!!! cloud=${INSTANCE_CLOUD}"
 fi
 
-hostnamectl set-hostname "${INSTANCE_ID}"
+# Elastic Agent reads the hostname at enrolment (install_elastic below), so this must
+# run first. Clouds without a name lookup keep the instance id.
+hostnamectl set-hostname "${VPN_NAME:-${INSTANCE_ID}}"
 
 # Set output file
 OUTPUT_FILE="./output.txt"
