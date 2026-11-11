@@ -1,7 +1,7 @@
 # Changelog
 
 ### [Unreleased] - 2026-11-11
-- DVO-669: on `ORACLE`, set the hostname to the instance display name (`VPN44-dev-us-ashburn-1`), read from `169.254.169.254/opc/v2/instance/displayName`, instead of the OCID. Elastic Agent takes `host.name` from the hostname at enrolment, so VPN hosts appeared in Kibana under a truncated OCID. Other clouds, and an empty lookup, still fall back to the instance id. Registration is unaffected because it sends `$INSTANCE_ID`, not the hostname.
+- DVO-669: set the hostname to the vpn-admin instance name (e.g. `VPN44-dev-us-ashburn-1`) instead of the instance id, so Elastic Agent reports it as `host.name`. The name comes from the metadata service on ORACLE, HETZNER, DIGITAL_OCEAN and LINODE. AWS (whose IMDS doesn't expose tags), LIGHTNODE, and any empty lookup fall back to the instance id. Registration still sends `$INSTANCE_ID`.
 
 ### [Unreleased] - 2026-11-01
 - UNP-8001: fix `apt_wait` never running apt-get. It treated `unattended-upgrades.service` being active as "apt busy", but that unit only runs `unattended-upgrade-shutdown --wait-for-signal` and is active for the machine's whole life, so all 60 attempts waited and the helper gave up after 10 minutes — Docker never installed (OCI il-jerusalem-1, dev + stage). Now waits on `apt-daily`, `apt-daily-upgrade` and an actual `/usr/bin/unattended-upgrade` process.

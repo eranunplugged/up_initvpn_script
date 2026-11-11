@@ -77,15 +77,18 @@ if [ "$INSTANCE_CLOUD" == "AWS" ]; then
   fi
 elif [ "$INSTANCE_CLOUD" == "DIGITAL_OCEAN" ]; then
   export INSTANCE_ID=$(curl http://169.254.169.254/metadata/v1/id)
+  VPN_NAME=$(curl -s -f http://169.254.169.254/metadata/v1/hostname)
 elif [ "$INSTANCE_CLOUD" == "LINODE" ]; then
     export INSTANCE_ID=$LINODE_ID
+    LINODE_TOKEN=$(curl -s -f -X PUT -H "Metadata-Token-Expiry-Seconds: 300" http://169.254.169.254/v1/token)
+    VPN_NAME=$(curl -s -f -H "Metadata-Token: $LINODE_TOKEN" http://169.254.169.254/v1/instance | sed -n 's/^label: //p')
 elif [ "$INSTANCE_CLOUD" == "HETZNER" ]; then
     export INSTANCE_ID=$(curl http://169.254.169.254/hetzner/v1/metadata/instance-id)
+    VPN_NAME=$(curl -s -f http://169.254.169.254/hetzner/v1/metadata/hostname)
 elif [ "$INSTANCE_CLOUD" == "LIGHTNODE" ]; then
     export INSTANCE_ID=$(cat /etc/machine-id)
 elif [ "$INSTANCE_CLOUD" == "ORACLE" ]; then
     export INSTANCE_ID=$(curl -s -H "Authorization: Bearer Oracle" http://169.254.169.254/opc/v2/instance/id)
-    # vpn-admin's name for the instance, e.g. VPN44-dev-us-ashburn-1
     VPN_NAME=$(curl -s -f -H "Authorization: Bearer Oracle" http://169.254.169.254/opc/v2/instance/displayName)
 fi
 
@@ -96,8 +99,7 @@ if [ -z "$INSTANCE_ID" ]; then
   echo "MISSING INSTANCE_ID !!!!!!!!!!!!!! cloud=${INSTANCE_CLOUD}"
 fi
 
-# Elastic Agent reads the hostname at enrolment (install_elastic below), so this must
-# run first. Clouds without a name lookup keep the instance id.
+# Before install_elastic: the agent takes host.name from it at enrolment.
 hostnamectl set-hostname "${VPN_NAME:-${INSTANCE_ID}}"
 
 # Set output file
