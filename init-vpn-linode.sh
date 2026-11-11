@@ -100,8 +100,7 @@ if [ -z "$INSTANCE_ID" ]; then
 fi
 
 # Before install_elastic: the agent takes host.name from it at enrolment.
-CLOUD=${INSTANCE_CLOUD,,}
-hostnamectl set-hostname "${VPN_NAME:-${INSTANCE_ID}}${CLOUD:+-${CLOUD//_/-}}"
+hostnamectl set-hostname "${VPN_NAME:-${INSTANCE_ID}}"
 
 # Set output file
 OUTPUT_FILE="./output.txt"
