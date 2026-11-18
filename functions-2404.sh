@@ -156,7 +156,8 @@ function install_elastic() {
     tar xzvf ${ES_PREFIX}.tar.gz
     cd "${ES_PREFIX}" || exit
     # shellcheck disable=SC2086
-    ./elastic-agent install -f -n --url=${ES_CLOUD_URL} --enrollment-token=${ES_ENROLLMENT_TOKEN}
+    ./elastic-agent install -f -n --url=${ES_CLOUD_URL} --enrollment-token=${ES_ENROLLMENT_TOKEN} \
+      --tag "cloud:${INSTANCE_CLOUD},env:${ENVIRONMENT},region:${INSTANCE_REGION}"
     # shellcheck disable=SC2086
     # shellcheck disable=SC2164
     cd ${OLDPWD}
